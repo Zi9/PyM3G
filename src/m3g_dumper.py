@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 from io import BytesIO
 from struct import unpack
-from typing import List, Dict, Type
+from typing import List, Dict
 import timeit
 
 TypeToStr = {
@@ -32,6 +32,8 @@ TypeToStr = {
     255: "External Reference",
 }
 
+# Base objects
+
 
 @dataclass
 class Object3D:
@@ -41,8 +43,19 @@ class Object3D:
     """
 
     user_id: int
-    animation_tracks: List[int] = []
-    user_parameters: Dict = {}
+    animation_tracks: List[int]
+    user_parameters: Dict
+
+    def __init__(self, rdr):
+        self.animation_tracks = []
+        self.user_parameters = {}
+        self.user_id, at_count = unpack("<II", rdr.read(8))
+        for _ in range(at_count):
+            self.animation_tracks.append(unpack("<I", rdr.read(4))[0])
+        up_count = unpack("<I", rdr.read(4))[0]
+        for _ in range(up_count):
+            pid, psz = unpack("<II", rdr.read(8))
+            self.user_parameters[pid] = rdr.read(psz)
 
 
 @dataclass
@@ -53,12 +66,24 @@ class Transformable(Object3D):
     """
 
     has_component_transform: bool
-    translation: tuple = None
-    scale: tuple = None
-    orientation_angle: float = None
-    orientation_axis: tuple = None
+    translation: tuple
+    scale: tuple
+    orientation_angle: float
+    orientation_axis: tuple
     has_general_transform: bool
-    transform: tuple = None
+    transform: tuple
+
+    def __init__(self, rdr):
+        super().__init__(rdr)
+        self.has_component_transform = unpack("<?", rdr.read(1)[0])
+        if self.has_component_transform:
+            self.translation = unpack("<3f", rdr.read(12))
+            self.scale = unpack("<3f", rdr.read(12))
+            self.orientation_angle = unpack("<f", rdr.read(4)[0])
+            self.orientation_axis = unpack("<3f", rdr.read(12))
+        self.has_general_transform = unpack("<?", rdr.read(1)[0])
+        if self.has_general_transform:
+            self.transform = unpack("<16f", rdr.read(64))
 
 
 @dataclass
@@ -72,21 +97,38 @@ class Node(Transformable):
     alpha_factor: int
     scope: int
     has_alignment: bool
-    z_target: int = None
-    y_target: int = None
-    z_reference: int = None
-    y_reference: int = None
+    z_target: int
+    y_target: int
+    z_reference: int
+    y_reference: int
 
+    def __init__(self, rdr):
+        super().__init__(rdr)
+        (self.enable_rendering, self.enable_picking,
+         self.alpha_factor, self.scope,
+         self.has_alignment) = unpack("<??BI?", rdr.read(8))
+        if self.has_alignment:
+            (self.z_target, self.y_target, self.z_reference,
+             self.y_reference) = unpack("<BBII", rdr.read(10))
+
+
+# Object classes
 
 @dataclass
 class Header:
     """Header object"""  # TODO: Proper docstring
 
-    version_number: tuple = None
-    has_external_references: bool = None
-    total_file_size: int = None
-    approximate_content_size: int = None
-    authoring_field: str = None
+    version_number: tuple
+    has_external_references: bool
+    total_file_size: int
+    approximate_content_size: int
+    authoring_field: str
+
+    def __init__(self, rdr):
+        self.version_number = unpack("<BB", rdr.read(2))
+        (self.has_external_references, self.total_file_size,
+         self.approximate_content_size) = unpack("<?II", rdr.read(9))
+        self.authoring_field = rdr.read().rstrip(b"\x00").decode("utf-8")
 
 
 @dataclass
@@ -94,6 +136,9 @@ class ExternalReference:
     """ExternalReference object"""  # TODO: Proper docstring
 
     uri: str
+
+    def __init__(self, rdr):
+        self.uri = rdr.read().rstrip(b"\x00").decode("utf-8")
 
 
 @dataclass
@@ -134,7 +179,7 @@ class Appearance(Object3D):
     fog: int
     polygon_mode: int
     material: int
-    textures: List[int] = []
+    textures: List[int]
 
 
 @dataclass
@@ -163,11 +208,11 @@ class Camera(Node):
     """
 
     projection_type: int
-    projection_matrix: tuple = None
-    fovy: float = None
-    aspect_ratio: float = None
-    near: float = None
-    far: float = None
+    projection_matrix: tuple
+    fovy: float
+    aspect_ratio: float
+    near: float
+    far: float
 
 
 @dataclass
@@ -195,9 +240,9 @@ class Fog(Object3D):
 
     color: tuple
     mode: int
-    density: float = None
-    near: float = None
-    far: float = None
+    density: float
+    near: float
+    far: float
 
 
 @dataclass
@@ -207,7 +252,7 @@ class Group(Node):
     children
     """
 
-    children: List[int] = []
+    children: List[int]
 
 
 @dataclass
@@ -221,8 +266,8 @@ class Image2D(Object3D):
     is_mutable: bool
     width: int
     height: int
-    palette: List[int] = []
-    pixels: List[int] = []
+    palette: List[int]
+    pixels: List[int]
 
 
 @dataclass
@@ -240,10 +285,10 @@ class KeyframeSequence(Object3D):
     valid_range_last: int
     component_count: int
     keyframe_count: int
-    time: List[int] = []
-    vector_value: List[tuple] = []
-    vector_bias: List[tuple] = []
-    vector_scale: List[tuple] = []
+    time: List[int]
+    vector_value: List[tuple]
+    vector_bias: List[tuple]
+    vector_scale: List[tuple]
 
 
 @dataclass
@@ -435,88 +480,17 @@ class Loader:
             return True
         return False
 
-    def ReadObject3D(self, rdr):
-        uid, aCount = unpack("<II", rdr.read(8))
-        if aCount > 0:
-            animTracks = unpack("<" + str(aCount) + "I", rdr.read(aCount * 4))
-        else:
-            animTracks = None
-        uparamCount = unpack("<I", rdr.read(4))[0]
-        if uparamCount > 0:
-            params = []
-            for i in range(uparamCount):
-                paramID, sz = unpack("<II", rdr.read(8))
-                val = unpack("<" + str(sz) + "c")
-                params.append((paramID, val))
-        else:
-            params = None
-        return Object3D(uid, animTracks, params)
-
-    def ReadTransformable(self, rdr):
-        sup = self.ReadObject3D(rdr)
-        compTransf = unpack("<?", rdr.read(1))
-        if compTransf:
-            translation = unpack("<fff", rdr.read(12))
-            scale = unpack("<fff", rdr.read(12))
-            orientAngle = unpack("<f", rdr.read(4))[0]
-            orientAxis = unpack("<fff", rdr.read(12))
-        genTransf = unpack("<?", rdr.read(1))[0]
-        if genTransf:
-            mtrx = unpack("<16f", rdr.read(64))
-        tr = Transformable(
-            sup,
-            compTransf,
-            translation,
-            scale,
-            orientAngle,
-            orientAxis,
-            genTransf,
-            mtrx,
-        )
-        return tr
-
-    def ReadNode(self, rdr):
-        sup = self.ReadTransformable(rdr)
-        render, pick, alpha, scope, align = unpack("<??BI?", rdr.read(8))
-        if align:
-            zt, yt, zr, yr = unpack("<BBII", rdr.read(10))
-        else:
-            zt = None
-            yt = None
-            zr = None
-            yr = None
-        nd = Node(sup, render, pick, alpha, scope, align, zt, yt, zr, yr)
-        return nd
-
     def ParseObject(self, objtype, data):
         rdr = BytesIO(data)
         if objtype == 0:
-            verMa, verMi, refs, size = unpack("<BB?I4x", rdr.read(11))
-            authoring = rdr.read().rstrip(b"\x00").decode("utf-8")
-            hdr = Header(f"{verMa}.{verMi}", size, refs, authoring)
-            rdr.close()
-            return hdr
-        elif objtype == 8:
-            s_class = self.ReadObject3D(rdr)
-            d = unpack("<BBB???", rdr.read(6))
-            pmode = PolygonMode(s_class, d[0], d[1], d[2], d[3], d[4], d[5])
-            rdr.close()
-            return pmode
-        elif objtype == 17:
-            s_class = self.ReadTransformable(rdr)
-            img = unpack("<I", rdr.read(4))[0]
-            bcol = unpack("<BBB", rdr.read(3))
-            blend, wrpS, wrpT, lFil, iFil = unpack("<5B", rdr.read(5))
-            t2d = Texture2D(s_class, img, bcol, blend, wrpS, wrpT, lFil, iFil)
-            rdr.close()
-            return t2d
+            obj = Header(rdr)
         elif objtype == 255:
-            uri = rdr.read().rstrip(b"\x00").decode("utf-8")
-            rdr.close()
-            return ExternalReference(uri)
+            obj = ExternalReference(rdr)
+        else:
+            obj = TypeToStr[objtype]
 
         rdr.close()
-        return TypeToStr[objtype]
+        return obj
 
     def ReadObjects(self, data):
         rdr = BytesIO(data)
@@ -543,8 +517,8 @@ class Loader:
 
 start = timeit.default_timer()
 
-a = Loader("../testfiles/vrally/car_subaru.m3g")
-# a = Loader('/home/zi/tmp/ug/car_exotic.m3g')
+# a = Loader("../testfiles/vrally/car_subaru.m3g")
+a = Loader('/home/zi/tmp/ug/car_exotic.m3g')
 
 print(f"Loaded file in {timeit.default_timer()-start} seconds")
 
