@@ -2,10 +2,10 @@
 from dataclasses import dataclass
 from io import BytesIO
 from struct import unpack
-from typing import List, Dict
+from typing import List, Dict, Type
 import timeit
 
-ObjTypeNames = {
+TypeToStr = {
     0: "Header",
     1: "AnimationController",
     2: "AnimationTrack",
@@ -35,8 +35,10 @@ ObjTypeNames = {
 
 @dataclass
 class Object3D:
-    """An abstract base class for all objects that can be part of a 3D
-    world. """
+    """
+    An abstract base class for all objects that can be part of a 3D
+    world
+    """
 
     user_id: int
     animation_tracks: List[int] = []
@@ -45,8 +47,10 @@ class Object3D:
 
 @dataclass
 class Transformable(Object3D):
-    """An abstract base class for Node and Texture2D, defining common methods
-    for manipulating node and texture transformations."""
+    """
+    An abstract base class for Node and Texture2D, defining common methods
+    for manipulating node and texture transformations
+    """
 
     has_component_transform: bool
     translation: tuple = None
@@ -59,7 +63,9 @@ class Transformable(Object3D):
 
 @dataclass
 class Node(Transformable):
-    """An abstract base class for all scene graph nodes."""
+    """
+    An abstract base class for all scene graph nodes
+    """
 
     enable_rendering: bool
     enable_picking: bool
@@ -84,8 +90,17 @@ class Header:
 
 
 @dataclass
+class ExternalReference:
+    """ExternalReference object"""  # TODO: Proper docstring
+
+    uri: str
+
+
+@dataclass
 class AnimationController(Object3D):
-    """Controls the position, speed and weight of an animation sequence."""
+    """
+    Controls the position, speed and weight of an animation sequence
+    """
 
     speed: float
     weight: float
@@ -97,8 +112,10 @@ class AnimationController(Object3D):
 
 @dataclass
 class AnimationTrack(Object3D):
-    """Associates a KeyframeSequence with an AnimationController and an
-    animatable property."""
+    """
+    Associates a KeyframeSequence with an AnimationController and an
+    animatable property
+    """
 
     keyframe_sequence: int
     animation_controller: int
@@ -107,8 +124,10 @@ class AnimationTrack(Object3D):
 
 @dataclass
 class Appearance(Object3D):
-    """A set of component objects that define the rendering attributes of a
-    Mesh or Sprite3D."""
+    """
+    A set of component objects that define the rendering attributes of a
+    Mesh or Sprite3D
+    """
 
     layer: int
     compositing_mode: int
@@ -120,7 +139,9 @@ class Appearance(Object3D):
 
 @dataclass
 class Background(Object3D):
-    """Defines whether and how to clear the viewport."""
+    """
+    Defines whether and how to clear the viewport
+    """
 
     background_color: tuple
     background_image: int
@@ -134,6 +155,266 @@ class Background(Object3D):
     color_clear_enabled: bool
 
 
+@dataclass
+class Camera(Node):
+    """
+    A scene graph node that defines the position of the viewer in the scene
+    and the projection from 3D to 2D
+    """
+
+    projection_type: int
+    projection_matrix: tuple = None
+    fovy: float = None
+    aspect_ratio: float = None
+    near: float = None
+    far: float = None
+
+
+@dataclass
+class CompositingMode(Object3D):
+    """
+    An Appearance component encapsulating per-pixel compositing
+    attributes
+    """
+
+    depth_test_enabled: bool
+    depth_write_enabled: bool
+    color_write_enabled: bool
+    alpha_write_enabled: bool
+    blending: int
+    alpha_threshold: int
+    depth_offset_factor: float
+    depth_offset_units: float
+
+
+@dataclass
+class Fog(Object3D):
+    """
+    An Appearance component encapsulating attributes for fogging
+    """
+
+    color: tuple
+    mode: int
+    density: float = None
+    near: float = None
+    far: float = None
+
+
+@dataclass
+class Group(Node):
+    """
+    A scene graph node that stores an unordered set of nodes as its
+    children
+    """
+
+    children: List[int] = []
+
+
+@dataclass
+class Image2D(Object3D):
+    """
+    A two-dimensional image that can be used as a texture, background or
+    sprite image
+    """
+
+    image_format: int
+    is_mutable: bool
+    width: int
+    height: int
+    palette: List[int] = []
+    pixels: List[int] = []
+
+
+@dataclass
+class KeyframeSequence(Object3D):
+    """
+    Encapsulates animation data as a sequence of time-stamped, vector-valued
+    keyframes
+    """
+
+    interpolation: int
+    repeat_mode: int
+    encoding: int
+    duration: int
+    valid_range_first: int
+    valid_range_last: int
+    component_count: int
+    keyframe_count: int
+    time: List[int] = []
+    vector_value: List[tuple] = []
+    vector_bias: List[tuple] = []
+    vector_scale: List[tuple] = []
+
+
+@dataclass
+class Light(Node):
+    """
+    A scene graph node that represents different kinds of light sources
+    """
+
+    attenuation_constant: float
+    attenuation_linear: float
+    attenuation_quadratic: float
+    color: tuple
+    mode: int
+    intensity: float
+    spot_angle: float
+    spot_exponent: float
+
+
+@dataclass
+class Material(Object3D):
+    """
+    An Appearance component encapsulating material attributes for lighting
+    computations
+    """
+
+    ambient_color: tuple
+    diffuse_color: tuple
+    emissive_color: tuple
+    specular_color: tuple
+    shininess: float
+    vertex_color_tracking_enabled: bool
+
+
+@dataclass
+class Mesh(Node):
+    """A scene graph node that represents a 3D object defined as a polygonal
+    surface."""
+
+    vertex_buffer: int
+    submesh_count: int
+    index_buffer: List[int]
+    appearance: List[int]
+
+
+@dataclass
+class MorphingMesh(Mesh):
+    """
+    A scene graph node that represents a vertex morphing polygon mesh
+    """
+
+    morph_target_count: int
+    morph_target: List[int]
+    initial_weight: List[float]
+
+
+@dataclass
+class PolygonMode(Object3D):
+    """
+    An Appearance component encapsulating polygon-level attributes
+    """
+
+    culling: int
+    shading: int
+    winding: int
+    two_sided_lighting_enabled: bool
+    local_camera_lighting_enabled: bool
+    perspective_correction_enabled: bool
+
+
+@dataclass
+class SkinnedMesh(Mesh):
+    """
+    A scene graph node that represents a skeletally animated polygon mesh
+    """
+
+    skeleton: int
+    transform_reference_count: int
+    transform_node: List[int]
+    first_vertex: List[int]
+    vertex_count: List[int]
+    weight: List[int]
+
+
+@dataclass
+class Sprite(Node):
+    """
+    A scene graph node that represents a 2-dimensional image with a 3D
+    position
+    """
+
+    image: int
+    appearance: int
+    is_scaled: bool
+    crop_x: int
+    crop_y: int
+    crop_width: int
+    crop_height: int
+
+
+@dataclass
+class Texture2D(Transformable):
+    """
+    An Appearance component encapsulating a two-dimensional texture image
+    and a set of attributes specifying how the image is to be applied on
+    submeshes
+    """
+
+    image: int
+    blend_color: tuple
+    blending: int
+    wrapping_s: int
+    wrapping_t: int
+    level_filter: int
+    image_filter: int
+
+
+@dataclass
+class TriangleStripArray(Object3D):
+    """
+    TriangleStripArray defines an array of triangle strips
+    """
+
+    encoding: int
+    start_index: List[int]
+    indices: List[int]
+    strip_lengths: List[List[int]]
+
+
+@dataclass
+class VertexArray(Object3D):
+    """
+    An array of integer vectors representing vertex positions, normals, colors,
+    or texture coordinates
+    """
+
+    component_size: int
+    component_count: int
+    encoding: int
+    vertex_count: int
+    vertices: List[tuple]
+
+
+@dataclass
+class VertexBuffer(Object3D):
+    """
+    VertexBuffer holds references to VertexArrays that contain the positions,
+    colors, normals, and texture coordinates for a set of vertices
+    """
+
+    default_color: tuple
+    positions: int
+    position_bias: List[float]
+    position_scale: float
+    normals: int
+    colors: int
+    texcoord_array_count: int
+    tex_coords: List[int]
+    tex_coord_bias: List[tuple]
+    tex_coord_scale: List[float]
+
+
+@dataclass
+class World(Group):
+    """
+    A special Group node that is a top-level container for scene graphs
+    """
+
+    active_camera: int
+    background: int
+
+
 class Loader:
     """Base reader class for m3g files"""
 
@@ -143,12 +424,12 @@ class Loader:
 
     def __init__(self, path):
         self.file = open(path, "rb")
-        if self.VerifySignature():
+        if self.verify_signature():
             print("Got m3g file")
             self.ReadSections()
         self.file.close()
 
-    def VerifySignature(self):
+    def verify_signature(self):
         """Verify header bytes to make sure this is a valid m3g file"""
         if self.file.read(12) == self.M3G_Signature:
             return True
@@ -235,7 +516,7 @@ class Loader:
             return ExternalReference(uri)
 
         rdr.close()
-        return ObjTypeNames[objtype]
+        return TypeToStr[objtype]
 
     def ReadObjects(self, data):
         rdr = BytesIO(data)
@@ -244,7 +525,7 @@ class Loader:
             if objectHeader == b"":
                 break
             objectType, sz = unpack("<BI", objectHeader)
-            print(f"Got object of type {ObjTypeNames[objectType]}")
+            print(f"Got object of type {TypeToStr[objectType]}")
             self.objects.append(self.ParseObject(objectType, rdr.read(sz)))
         rdr.close()
 
