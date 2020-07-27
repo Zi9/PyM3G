@@ -120,9 +120,8 @@ class Node(Transformable):
             self.has_alignment,
         ) = unpack("<??BI?", rdr.read(8))
         if self.has_alignment:
-            (self.z_target, self.y_target, self.z_reference, self.y_reference) = unpack(
-                "<BBII", rdr.read(10)
-            )
+            (self.z_target, self.y_target, self.z_reference,
+             self.y_reference) = unpack("<BBII", rdr.read(10))
         else:
             self.z_target = None
             self.y_target = None
@@ -213,7 +212,7 @@ class Appearance(Object3D):
             self.polygon_mode,
             self.material,
             texcount,
-        ) = unpack("<BIIIII", rdr.read(21))
+        ) = unpack("<B5I", rdr.read(21))
         for _ in range(texcount):
             self.textures.append(unpack("<I", rdr.read(4))[0])
 
@@ -456,7 +455,7 @@ class PolygonMode(Object3D):
             self.two_sided_lighting_enabled,
             self.local_camera_lighting_enabled,
             self.perspective_correction_enabled,
-        ) = unpack("<BBB???", rdr.read(6))
+        ) = unpack("<3B3?", rdr.read(6))
 
 
 @dataclass
@@ -579,7 +578,7 @@ class VertexArray(Object3D):
             self.component_count,
             self.encoding,
             self.vertex_count,
-        ) = unpack("<BBBH", rdr.read(5))
+        ) = unpack("<3BH", rdr.read(5))
         if self.component_size == 1:
             c_t = "b"
             c_s = 1
@@ -652,7 +651,7 @@ class VertexBuffer(Object3D):
             self.normals,
             self.colors,
             self.texcoord_array_count,
-        ) = unpack("<fIII", rdr.read(16))
+        ) = unpack("<f3I", rdr.read(16))
         if self.texcoord_array_count > 0:
             for _ in range(self.texcoord_array_count):
                 self.tex_coords.append(unpack("<I", rdr.read(4))[0])
