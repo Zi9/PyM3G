@@ -4,7 +4,7 @@ Module for loading JSR 184 m3g files
 from dataclasses import dataclass
 from io import BytesIO
 from struct import unpack
-from typing import List, Dict, Any
+from typing import List, Dict
 
 TypeToStr = {
     0: "Header",
@@ -44,17 +44,15 @@ class Object3D:
     """
 
     user_id: int
-    animation_tracks: List[Any]
+    animation_tracks: List[int]
     user_parameters: Dict
 
-    def __init__(self, rdr, objarray):
+    def __init__(self, rdr):
         self.animation_tracks = []
         self.user_parameters = {}
         self.user_id, at_count = unpack("<II", rdr.read(8))
         for _ in range(at_count):
-            self.animation_tracks.append(
-                objarray[unpack("<I", rdr.read(4))[0]-1]
-            )
+            self.animation_tracks.append(unpack("<I", rdr.read(4))[0])
         up_count = unpack("<I", rdr.read(4))[0]
         for _ in range(up_count):
             pid, psz = unpack("<II", rdr.read(8))
@@ -76,8 +74,8 @@ class Transformable(Object3D):
     has_general_transform: bool
     transform: tuple
 
-    def __init__(self, rdr, objarray):
-        super().__init__(rdr, objarray)
+    def __init__(self, rdr):
+        super().__init__(rdr)
         self.has_component_transform = unpack("<?", rdr.read(1))[0]
         if self.has_component_transform:
             self.translation = unpack("<3f", rdr.read(12))
@@ -109,11 +107,11 @@ class Node(Transformable):
     has_alignment: bool
     z_target: int
     y_target: int
-    z_reference: Any
-    y_reference: Any
+    z_reference: int
+    y_reference: int
 
-    def __init__(self, rdr, objarray):
-        super().__init__(rdr, objarray)
+    def __init__(self, rdr):
+        super().__init__(rdr)
         (
             self.enable_rendering,
             self.enable_picking,
@@ -122,10 +120,8 @@ class Node(Transformable):
             self.has_alignment,
         ) = unpack("<??BI?", rdr.read(8))
         if self.has_alignment:
-            (self.z_target, self.y_target, zref,
-             yref) = unpack("<BBII", rdr.read(10))
-            self.z_reference = objarray[zref - 1]
-            self.y_reference = objarray[yref - 1]
+            (self.z_target, self.y_target, self.z_reference,
+             self.y_reference) = unpack("<BBII", rdr.read(10))
         else:
             self.z_target = None
             self.y_target = None
@@ -200,30 +196,25 @@ class Appearance(Object3D):
     """
 
     layer: int
-    compositing_mode: Any
-    fog: Any
-    polygon_mode: Any
-    material: Any
-    textures: List[Any]
+    compositing_mode: int
+    fog: int
+    polygon_mode: int
+    material: int
+    textures: List[int]
 
-    def __init__(self, rdr, objarray):
-        super().__init__(rdr, objarray)
+    def __init__(self, rdr):
+        super().__init__(rdr)
         self.textures = []
         (
             self.layer,
-            compositing_mode,
-            fog,
-            polygon_mode,
-            material,
+            self.compositing_mode,
+            self.fog,
+            self.polygon_mode,
+            self.material,
             texcount,
         ) = unpack("<B5I", rdr.read(21))
-        self.compositing_mode = objarray[compositing_mode - 1]
-        self.fog = objarray[fog - 1]
-        self.polygon_mode = objarray[polygon_mode - 1]
-        self.material = objarray[material - 1]
         for _ in range(texcount):
-            texid = unpack("<I", rdr.read(4))[0]
-            self.textures.append(objarray[texid - 1])
+            self.textures.append(unpack("<I", rdr.read(4))[0])
 
 
 @dataclass
@@ -275,8 +266,8 @@ class CompositingMode(Object3D):
     depth_offset_factor: float
     depth_offset_units: float
 
-    def __init__(self, rdr, objarray):
-        super().__init__(rdr, objarray)
+    def __init__(self, rdr):
+        super().__init__(rdr)
         (
             self.depth_test_enabled,
             self.depth_write_enabled,
@@ -309,15 +300,14 @@ class Group(Node):
     children
     """
 
-    children: List[Any]
+    children: List[int]
 
-    def __init__(self, rdr, objarray):
-        super().__init__(rdr, objarray)
+    def __init__(self, rdr):
+        super().__init__(rdr)
         self.children = []
         count = unpack("<I", rdr.read(4))[0]
         for _ in range(count):
-            child = unpack("<I", rdr.read(4))[0]
-            self.children.append(objarray[child - 1])
+            self.children.append(unpack("<I", rdr.read(4))[0])
 
 
 @dataclass
@@ -334,8 +324,8 @@ class Image2D(Object3D):
     palette: List[int]
     pixels: List[int]
 
-    def __init__(self, rdr, objarray):
-        super().__init__(rdr, objarray)
+    def __init__(self, rdr):
+        super().__init__(rdr)
         self.palette = []
         self.pixels = []
         (self.image_format, self.is_mutable, self.width, self.height) = unpack(
@@ -401,8 +391,8 @@ class Material(Object3D):
     shininess: float
     vertex_color_tracking_enabled: bool
 
-    def __init__(self, rdr, objarray):
-        super().__init__(rdr, objarray)
+    def __init__(self, rdr):
+        super().__init__(rdr)
         self.ambient_color = unpack("<3B", rdr.read(3))
         self.diffuse_color = unpack("<4B", rdr.read(4))
         self.emissive_color = unpack("<3B", rdr.read(3))
@@ -417,21 +407,19 @@ class Mesh(Node):
     """A scene graph node that represents a 3D object defined as a polygonal
     surface."""
 
-    vertex_buffer: Any
+    vertex_buffer: int
     submesh_count: int
-    index_buffer: List[Any]
-    appearance: List[Any]
+    index_buffer: List[int]
+    appearance: List[int]
 
-    def __init__(self, rdr, objarray):
-        super().__init__(rdr, objarray)
+    def __init__(self, rdr):
+        super().__init__(rdr)
         self.index_buffer = []
         self.appearance = []
-        vertex_buffer, self.submesh_count = unpack("<II", rdr.read(8))
-        self.vertex_buffer = objarray[vertex_buffer - 1]
+        self.vertex_buffer, self.submesh_count = unpack("<II", rdr.read(8))
         for _ in range(self.submesh_count):
-            index, appearance = unpack("<II", rdr.read(8))
-            self.index_buffer.append(objarray[index - 1])
-            self.appearance.append(objarray[appearance - 1])
+            self.index_buffer.append(unpack("<I", rdr.read(4))[0])
+            self.appearance.append(unpack("<I", rdr.read(4))[0])
 
 
 @dataclass
@@ -458,8 +446,8 @@ class PolygonMode(Object3D):
     local_camera_lighting_enabled: bool
     perspective_correction_enabled: bool
 
-    def __init__(self, rdr, objarray):
-        super().__init__(rdr, objarray)
+    def __init__(self, rdr):
+        super().__init__(rdr)
         (
             self.culling,
             self.shading,
@@ -508,7 +496,7 @@ class Texture2D(Transformable):
     submeshes
     """
 
-    image: Any
+    image: int
     blend_color: tuple
     blending: int
     wrapping_s: int
@@ -516,10 +504,9 @@ class Texture2D(Transformable):
     level_filter: int
     image_filter: int
 
-    def __init__(self, rdr, objarray):
-        super().__init__(rdr, objarray)
-        image = unpack("<I", rdr.read(4))[0]
-        self.image = objarray[image - 1]
+    def __init__(self, rdr):
+        super().__init__(rdr)
+        self.image = unpack("<I", rdr.read(4))[0]
         self.blend_color = unpack("<3B", rdr.read(3))
         (
             self.blending,
@@ -541,8 +528,8 @@ class TriangleStripArray(Object3D):
     indices: List[int]
     strip_lengths: List[int]
 
-    def __init__(self, rdr, objarray):
-        super().__init__(rdr, objarray)
+    def __init__(self, rdr):
+        super().__init__(rdr)
         self.indices = []
         self.strip_lengths = []
         self.start_index = 0
@@ -583,8 +570,8 @@ class VertexArray(Object3D):
     vertex_count: int
     vertices: List[tuple]
 
-    def __init__(self, rdr, objarray):
-        super().__init__(rdr, objarray)
+    def __init__(self, rdr):
+        super().__init__(rdr)
         self.vertices = []
         (
             self.component_size,
@@ -619,12 +606,9 @@ class VertexArray(Object3D):
                     rdr.read(self.component_count * c_s),
                 )
                 if self.component_count == 2:
-                    tvtx = (delta[0] + vtx[0],
-                            delta[1] + vtx[1])
+                    tvtx = (delta[0] + vtx[0], delta[1] + vtx[1])
                 elif self.component_count == 3:
-                    tvtx = (delta[0] + vtx[0],
-                            delta[1] + vtx[1],
-                            delta[2] + vtx[2])
+                    tvtx = (delta[0] + vtx[0], delta[1] + vtx[1], delta[2] + vtx[2])
                 elif self.component_count == 4:
                     tvtx = (
                         delta[0] + vtx[0],
@@ -644,37 +628,33 @@ class VertexBuffer(Object3D):
     """
 
     default_color: tuple
-    positions: Any
+    positions: int
     position_bias: tuple
     position_scale: float
-    normals: Any
-    colors: Any
+    normals: int
+    colors: int
     texcoord_array_count: int
-    tex_coords: List[Any]
+    tex_coords: List[int]
     tex_coord_bias: List[tuple]
     tex_coord_scale: List[float]
 
-    def __init__(self, rdr, objarray):
-        super().__init__(rdr, objarray)
+    def __init__(self, rdr):
+        super().__init__(rdr)
         self.tex_coords = []
         self.tex_coord_bias = []
         self.tex_coord_scale = []
         self.default_color = unpack("<4B", rdr.read(4))
-        positions = unpack("<I", rdr.read(4))[0]
-        self.positions = objarray[positions - 1]
+        self.positions = unpack("<I", rdr.read(4))[0]
         self.position_bias = unpack("<3f", rdr.read(12))
         (
             self.position_scale,
-            normals,
-            colors,
+            self.normals,
+            self.colors,
             self.texcoord_array_count,
         ) = unpack("<f3I", rdr.read(16))
-        self.normals = objarray[normals - 1]
-        self.colors = objarray[colors - 1]
         if self.texcoord_array_count > 0:
             for _ in range(self.texcoord_array_count):
-                tex_coords = unpack("<I", rdr.read(4))[0]
-                self.tex_coords.append(objarray[tex_coords - 1])
+                self.tex_coords.append(unpack("<I", rdr.read(4))[0])
                 self.tex_coord_bias.append(unpack("<3f", rdr.read(12)))
                 self.tex_coord_scale.append(unpack("<f", rdr.read(4))[0])
 
@@ -688,17 +668,13 @@ class World(Group):
     active_camera: int
     background: int
 
-    def __init__(self, rdr, objarray):
-        super().__init__(rdr, objarray)
-        active_camera, background = unpack("<II", rdr.read(8))
-        self.active_camera = objarray[active_camera - 1]
-        self.background = objarray[background - 1]
+    def __init__(self, rdr):
+        super().__init__(rdr)
+        self.active_camera, self.background = unpack("<II", rdr.read(8))
 
 
 class Loader:
-    """
-    Base reader class for m3g files
-    """
+    """Base reader class for m3g files"""
 
     M3G_Signature = b"\xAB\x4A\x53\x52\x31\x38\x34\xBB\x0D\x0A\x1A\x0A"
 
@@ -712,9 +688,7 @@ class Loader:
         self.file.close()
 
     def verify_signature(self):
-        """
-        Verify header bytes to make sure this is a valid m3g file
-        """
+        """Verify header bytes to make sure this is a valid m3g file"""
         if self.file.read(12) == self.M3G_Signature:
             return True
         return False
@@ -724,29 +698,29 @@ class Loader:
         if objtype == 0:
             obj = Header(rdr)
         elif objtype == 3:
-            obj = Appearance(rdr, self.objects)
+            obj = Appearance(rdr)
         elif objtype == 6:
-            obj = CompositingMode(rdr, self.objects)
+            obj = CompositingMode(rdr)
         elif objtype == 8:
-            obj = PolygonMode(rdr, self.objects)
+            obj = PolygonMode(rdr)
         elif objtype == 9:
-            obj = Group(rdr, self.objects)
+            obj = Group(rdr)
         elif objtype == 10:
-            obj = Image2D(rdr, self.objects)
+            obj = Image2D(rdr)
         elif objtype == 11:
-            obj = TriangleStripArray(rdr, self.objects)
+            obj = TriangleStripArray(rdr)
         elif objtype == 13:
-            obj = Material(rdr, self.objects)
+            obj = Material(rdr)
         elif objtype == 14:
-            obj = Mesh(rdr, self.objects)
+            obj = Mesh(rdr)
         elif objtype == 17:
-            obj = Texture2D(rdr, self.objects)
+            obj = Texture2D(rdr)
         elif objtype == 20:
-            obj = VertexArray(rdr, self.objects)
+            obj = VertexArray(rdr)
         elif objtype == 21:
-            obj = VertexBuffer(rdr, self.objects)
+            obj = VertexBuffer(rdr)
         elif objtype == 22:
-            obj = World(rdr, self.objects)
+            obj = World(rdr)
         elif objtype == 255:
             obj = ExternalReference(rdr)
         else:
