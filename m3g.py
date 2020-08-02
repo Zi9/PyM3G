@@ -608,7 +608,9 @@ class VertexArray(Object3D):
                 if self.component_count == 2:
                     tvtx = (delta[0] + vtx[0], delta[1] + vtx[1])
                 elif self.component_count == 3:
-                    tvtx = (delta[0] + vtx[0], delta[1] + vtx[1], delta[2] + vtx[2])
+                    tvtx = (delta[0] + vtx[0],
+                            delta[1] + vtx[1],
+                            delta[2] + vtx[2])
                 elif self.component_count == 4:
                     tvtx = (
                         delta[0] + vtx[0],
@@ -678,9 +680,9 @@ class Loader:
 
     M3G_Signature = b"\xAB\x4A\x53\x52\x31\x38\x34\xBB\x0D\x0A\x1A\x0A"
 
-    objects = []
 
     def __init__(self, path):
+        self.objects = []
         self.file = open(path, "rb")
         if self.verify_signature():
             print("Got m3g file")
@@ -761,3 +763,6 @@ class Loader:
             section_length = total_len - 13
             self.read_objects(self.file.read(section_length))
             self.file.read(4)
+
+    def get_object_by_id(self, obj_id):
+        return self.objects[obj_id - 1]
