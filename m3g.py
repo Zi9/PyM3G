@@ -1,5 +1,5 @@
 """
-Module for loading JSR 184 m3g files
+Module for reading JSR 184 m3g files
 """
 from dataclasses import dataclass
 from io import BytesIO
@@ -134,7 +134,9 @@ class Node(Transformable):
 
 @dataclass
 class Header:
-    """Header object"""  # TODO: Proper docstring
+    """
+    Header contains metadata about the file
+    """
 
     version_number: tuple
     has_external_references: bool
@@ -146,7 +148,7 @@ class Header:
         self.version_number = unpack("<BB", rdr.read(2))
         (
             self.has_external_references,
-            self.total_file_size,
+           self.total_file_size,
             self.approximate_content_size,
         ) = unpack("<?II", rdr.read(9))
         self.authoring_field = rdr.read().rstrip(b"\x00").decode("utf-8")
@@ -154,7 +156,9 @@ class Header:
 
 @dataclass
 class ExternalReference:
-    """ExternalReference object"""  # TODO: Proper docstring
+    """
+    Used for including external files (textures or other scenes)
+    """
 
     uri: str
 
@@ -175,6 +179,14 @@ class AnimationController(Object3D):
     reference_sequence_time: float
     reference_world_time: int
 
+    def __init__(self, rdr):
+        super().__init__(rdr)
+        (
+            self.speed, self.weight, self.active_interval_start,
+            self.active_interval_end, self.reference_sequence_time,
+            self.reference_world_time
+        ) = unpack("<ffIIfI", rdr.read(24))
+
 
 @dataclass
 class AnimationTrack(Object3D):
@@ -186,6 +198,12 @@ class AnimationTrack(Object3D):
     keyframe_sequence: int
     animation_controller: int
     property_id: int
+
+    def __init__(self, rdr):
+        super().__init__(rdr)
+        (
+            self.keyframe_sequence, self.animation_controller, self.property_id
+        ) = unpack("<3I", rdr.read(12))
 
 
 @dataclass
@@ -234,6 +252,16 @@ class Background(Object3D):
     depth_clear_enabled: bool
     color_clear_enabled: bool
 
+    def __init__(self, rdr):
+        super().__init__(rdr)
+        self.background_color = unpack("<4f", rdr.read(16))
+        (
+            self.background_image, self.background_image_mode_x,
+            self.background_image_mode_y, self.crop_x, self.crop_y,
+            self.crop_width, self.crop_height, self.depth_clear_enabled,
+            self.color_clear_enabled
+        ) = unpack("<IBB4I??", rdr.read(24))
+
 
 @dataclass
 class Camera(Node):
@@ -248,6 +276,16 @@ class Camera(Node):
     aspect_ratio: float
     near: float
     far: float
+
+    def __init__(self, rdr):
+        super().__init__(rdr)
+        self.projection_type = unpack("<B", rdr.read(1))[0]
+        if self.projection_type == 48:
+            self.projection_matrix = unpack("<16f", rdr.read(64))
+        else:
+            (
+                self.fovy, self.aspect_ratio, self.near, self.far
+            ) = unpack("<4f", rdr.read(16))
 
 
 @dataclass
@@ -291,6 +329,17 @@ class Fog(Object3D):
     density: float
     near: float
     far: float
+
+    def __init__(self, rdr):
+        super().__init__(rdr)
+        self.color = unpack("<3f", rdr.read(12))
+        self.mode = unpack("<B", rdr.read(1))[0]
+        if self.mode == 80:
+            self.density = unpack("<f", rdr.read(4))[0]
+        elif self.mode == 81:
+            (self.near. self.far) = unpack("<2f", rdr.read(8))
+        else:
+            print("Invalid fog mode")
 
 
 @dataclass
@@ -360,6 +409,42 @@ class KeyframeSequence(Object3D):
     vector_bias: List[tuple]
     vector_scale: List[tuple]
 
+    def __init__(self, rdr):
+        super().__init__(rdr)
+        (self.interpolation, self.repeat_mode, self.encoding, self.duration,
+         self.valid_range_first, self.valid_range_last, self.component_count,
+         self.keyframe_count) = unpack(rdr.read(23), "<3B5I")
+        if self.encoding == 0:
+            for _ in range(self.keyframe_count):
+                self.time.append(unpack(rdr.read(4), "<I")[0])
+                self.vector_value.append(
+                    unpack(rdr.read(4 * self.component_count),
+                           f"<{self.component_count}f")
+                )
+        elif self.encoding == 1:
+            self.vector_bias = unpack(rdr.read(4 * self.component_count),
+                                      f"<{self.component_count}f")
+            self.vector_scale = unpack(rdr.read(4 * self.component_count),
+                                       f"<{self.component_count}f")
+            for _ in range(self.keyframe_count):
+                self.time.append(unpack(rdr.read(4), "<I")[0])
+                self.vector_value.append(
+                    unpack(rdr.read(self.component_count),
+                           f"<{self.component_count}B")
+                )
+        elif self.encoding == 2:
+            self.vector_bias = unpack(rdr.read(4 * self.component_count),
+                                      f"<{self.component_count}f")
+            self.vector_scale = unpack(rdr.read(4 * self.component_count),
+                                       f"<{self.component_count}f")
+            for _ in range(self.keyframe_count):
+                self.time.append(unpack(rdr.read(4), "<I")[0])
+                self.vector_value.append(
+                    unpack(rdr.read(2 * self.component_count),
+                           f"<{self.component_count}H")
+                )
+
+
 
 @dataclass
 class Light(Node):
@@ -375,6 +460,17 @@ class Light(Node):
     intensity: float
     spot_angle: float
     spot_exponent: float
+
+    def __init__(self, rdr):
+        super().__init__(rdr)
+        (
+            self.attenuation_constant, self.attenuation_linear,
+            self.attenuation_quadratic
+        ) = unpack("<3f", rdr.read(12))
+        self.color = unpack("<3f", rdr.read(12))
+        (
+            self.intensity, self.spot_angle, self.spot_exponent
+        ) = unpack("<3f", rdr.read(12))
 
 
 @dataclass
@@ -432,6 +528,14 @@ class MorphingMesh(Mesh):
     morph_target: List[int]
     initial_weight: List[float]
 
+    def __init__(self, rdr):
+        super().__init__(rdr)
+        self.morph_target_count = unpack(rdr.read(4), "<I")
+        for _ in range(self.morph_target_count):
+            morph_target, initial_weight = unpack(8, "<If")
+            self.morph_target.append(morph_target)
+            self.initial_weight.append(initial_weight)
+
 
 @dataclass
 class PolygonMode(Object3D):
@@ -459,7 +563,7 @@ class PolygonMode(Object3D):
 
 
 @dataclass
-class SkinnedMesh(Mesh):
+class SkinnedMesh(Mesh):  # TODO: Implement
     """
     A scene graph node that represents a skeletally animated polygon mesh
     """
@@ -486,6 +590,13 @@ class Sprite(Node):
     crop_y: int
     crop_width: int
     crop_height: int
+
+    def __init__(self, rdr):
+        super().__init__(rdr)
+        (
+            self.image, self.appearance, self.is_scaled, self.crop_x,
+            self.crop_y, self.crop_width, self.crop_height
+        ) = unpack("<II?4i", rdr.read(25))
 
 
 @dataclass
@@ -680,7 +791,6 @@ class Loader:
 
     M3G_Signature = b"\xAB\x4A\x53\x52\x31\x38\x34\xBB\x0D\x0A\x1A\x0A"
 
-
     def __init__(self, path):
         self.objects = []
         self.file = open(path, "rb")
@@ -699,10 +809,20 @@ class Loader:
         rdr = BytesIO(data)
         if objtype == 0:
             obj = Header(rdr)
+        elif objtype == 1:
+            obj = AnimationController(rdr)
+        elif objtype == 2:
+            obj = AnimationTrack(rdr)
         elif objtype == 3:
             obj = Appearance(rdr)
+        elif objtype == 4:
+            obj = Background(rdr)
+        elif objtype == 5:
+            obj = Camera(rdr)
         elif objtype == 6:
             obj = CompositingMode(rdr)
+        elif objtype == 7:
+            obj = Fog(rdr)
         elif objtype == 8:
             obj = PolygonMode(rdr)
         elif objtype == 9:
@@ -711,12 +831,16 @@ class Loader:
             obj = Image2D(rdr)
         elif objtype == 11:
             obj = TriangleStripArray(rdr)
+        elif objtype == 12:
+            obj = Light(rdr)
         elif objtype == 13:
             obj = Material(rdr)
         elif objtype == 14:
             obj = Mesh(rdr)
         elif objtype == 17:
             obj = Texture2D(rdr)
+        elif objtype == 18:
+            obj = Sprite(rdr)
         elif objtype == 20:
             obj = VertexArray(rdr)
         elif objtype == 21:
