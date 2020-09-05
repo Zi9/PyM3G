@@ -120,8 +120,9 @@ class Node(Transformable):
             self.has_alignment,
         ) = unpack("<??BI?", rdr.read(8))
         if self.has_alignment:
-            (self.z_target, self.y_target, self.z_reference,
-             self.y_reference) = unpack("<BBII", rdr.read(10))
+            (self.z_target, self.y_target, self.z_reference, self.y_reference) = unpack(
+                "<BBII", rdr.read(10)
+            )
         else:
             self.z_target = None
             self.y_target = None
@@ -148,7 +149,7 @@ class Header:
         self.version_number = unpack("<BB", rdr.read(2))
         (
             self.has_external_references,
-           self.total_file_size,
+            self.total_file_size,
             self.approximate_content_size,
         ) = unpack("<?II", rdr.read(9))
         self.authoring_field = rdr.read().rstrip(b"\x00").decode("utf-8")
@@ -182,9 +183,12 @@ class AnimationController(Object3D):
     def __init__(self, rdr):
         super().__init__(rdr)
         (
-            self.speed, self.weight, self.active_interval_start,
-            self.active_interval_end, self.reference_sequence_time,
-            self.reference_world_time
+            self.speed,
+            self.weight,
+            self.active_interval_start,
+            self.active_interval_end,
+            self.reference_sequence_time,
+            self.reference_world_time,
         ) = unpack("<ffIIfI", rdr.read(24))
 
 
@@ -201,9 +205,9 @@ class AnimationTrack(Object3D):
 
     def __init__(self, rdr):
         super().__init__(rdr)
-        (
-            self.keyframe_sequence, self.animation_controller, self.property_id
-        ) = unpack("<3I", rdr.read(12))
+        (self.keyframe_sequence, self.animation_controller, self.property_id) = unpack(
+            "<3I", rdr.read(12)
+        )
 
 
 @dataclass
@@ -256,10 +260,15 @@ class Background(Object3D):
         super().__init__(rdr)
         self.background_color = unpack("<4f", rdr.read(16))
         (
-            self.background_image, self.background_image_mode_x,
-            self.background_image_mode_y, self.crop_x, self.crop_y,
-            self.crop_width, self.crop_height, self.depth_clear_enabled,
-            self.color_clear_enabled
+            self.background_image,
+            self.background_image_mode_x,
+            self.background_image_mode_y,
+            self.crop_x,
+            self.crop_y,
+            self.crop_width,
+            self.crop_height,
+            self.depth_clear_enabled,
+            self.color_clear_enabled,
         ) = unpack("<IBB4I??", rdr.read(24))
 
 
@@ -283,9 +292,9 @@ class Camera(Node):
         if self.projection_type == 48:
             self.projection_matrix = unpack("<16f", rdr.read(64))
         else:
-            (
-                self.fovy, self.aspect_ratio, self.near, self.far
-            ) = unpack("<4f", rdr.read(16))
+            (self.fovy, self.aspect_ratio, self.near, self.far) = unpack(
+                "<4f", rdr.read(16)
+            )
 
 
 @dataclass
@@ -337,7 +346,7 @@ class Fog(Object3D):
         if self.mode == 80:
             self.density = unpack("<f", rdr.read(4))[0]
         elif self.mode == 81:
-            (self.near. self.far) = unpack("<2f", rdr.read(8))
+            (self.near.self.far) = unpack("<2f", rdr.read(8))
         else:
             print("Invalid fog mode")
 
@@ -411,39 +420,50 @@ class KeyframeSequence(Object3D):
 
     def __init__(self, rdr):
         super().__init__(rdr)
-        (self.interpolation, self.repeat_mode, self.encoding, self.duration,
-         self.valid_range_first, self.valid_range_last, self.component_count,
-         self.keyframe_count) = unpack(rdr.read(23), "<3B5I")
+        (
+            self.interpolation,
+            self.repeat_mode,
+            self.encoding,
+            self.duration,
+            self.valid_range_first,
+            self.valid_range_last,
+            self.component_count,
+            self.keyframe_count,
+        ) = unpack(rdr.read(23), "<3B5I")
         if self.encoding == 0:
             for _ in range(self.keyframe_count):
                 self.time.append(unpack(rdr.read(4), "<I")[0])
                 self.vector_value.append(
-                    unpack(rdr.read(4 * self.component_count),
-                           f"<{self.component_count}f")
+                    unpack(
+                        rdr.read(4 * self.component_count), f"<{self.component_count}f"
+                    )
                 )
         elif self.encoding == 1:
-            self.vector_bias = unpack(rdr.read(4 * self.component_count),
-                                      f"<{self.component_count}f")
-            self.vector_scale = unpack(rdr.read(4 * self.component_count),
-                                       f"<{self.component_count}f")
+            self.vector_bias = unpack(
+                rdr.read(4 * self.component_count), f"<{self.component_count}f"
+            )
+            self.vector_scale = unpack(
+                rdr.read(4 * self.component_count), f"<{self.component_count}f"
+            )
             for _ in range(self.keyframe_count):
                 self.time.append(unpack(rdr.read(4), "<I")[0])
                 self.vector_value.append(
-                    unpack(rdr.read(self.component_count),
-                           f"<{self.component_count}B")
+                    unpack(rdr.read(self.component_count), f"<{self.component_count}B")
                 )
         elif self.encoding == 2:
-            self.vector_bias = unpack(rdr.read(4 * self.component_count),
-                                      f"<{self.component_count}f")
-            self.vector_scale = unpack(rdr.read(4 * self.component_count),
-                                       f"<{self.component_count}f")
+            self.vector_bias = unpack(
+                rdr.read(4 * self.component_count), f"<{self.component_count}f"
+            )
+            self.vector_scale = unpack(
+                rdr.read(4 * self.component_count), f"<{self.component_count}f"
+            )
             for _ in range(self.keyframe_count):
                 self.time.append(unpack(rdr.read(4), "<I")[0])
                 self.vector_value.append(
-                    unpack(rdr.read(2 * self.component_count),
-                           f"<{self.component_count}H")
+                    unpack(
+                        rdr.read(2 * self.component_count), f"<{self.component_count}H"
+                    )
                 )
-
 
 
 @dataclass
@@ -464,13 +484,14 @@ class Light(Node):
     def __init__(self, rdr):
         super().__init__(rdr)
         (
-            self.attenuation_constant, self.attenuation_linear,
-            self.attenuation_quadratic
+            self.attenuation_constant,
+            self.attenuation_linear,
+            self.attenuation_quadratic,
         ) = unpack("<3f", rdr.read(12))
         self.color = unpack("<3f", rdr.read(12))
-        (
-            self.intensity, self.spot_angle, self.spot_exponent
-        ) = unpack("<3f", rdr.read(12))
+        (self.intensity, self.spot_angle, self.spot_exponent) = unpack(
+            "<3f", rdr.read(12)
+        )
 
 
 @dataclass
@@ -594,8 +615,13 @@ class Sprite(Node):
     def __init__(self, rdr):
         super().__init__(rdr)
         (
-            self.image, self.appearance, self.is_scaled, self.crop_x,
-            self.crop_y, self.crop_width, self.crop_height
+            self.image,
+            self.appearance,
+            self.is_scaled,
+            self.crop_x,
+            self.crop_y,
+            self.crop_width,
+            self.crop_height,
         ) = unpack("<II?4i", rdr.read(25))
 
 
@@ -719,9 +745,7 @@ class VertexArray(Object3D):
                 if self.component_count == 2:
                     tvtx = (delta[0] + vtx[0], delta[1] + vtx[1])
                 elif self.component_count == 3:
-                    tvtx = (delta[0] + vtx[0],
-                            delta[1] + vtx[1],
-                            delta[2] + vtx[2])
+                    tvtx = (delta[0] + vtx[0], delta[1] + vtx[1], delta[2] + vtx[2])
                 elif self.component_count == 4:
                     tvtx = (
                         delta[0] + vtx[0],
