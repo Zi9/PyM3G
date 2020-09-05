@@ -584,7 +584,7 @@ class PolygonMode(Object3D):
 
 
 @dataclass
-class SkinnedMesh(Mesh):  # TODO: Implement
+class SkinnedMesh(Mesh):
     """
     A scene graph node that represents a skeletally animated polygon mesh
     """
@@ -595,6 +595,18 @@ class SkinnedMesh(Mesh):  # TODO: Implement
     first_vertex: List[int]
     vertex_count: List[int]
     weight: List[int]
+
+    def __init__(self, rdr):
+        super().__init__(rdr)
+        self.skeleton, self.transform_reference_count = unpack(rdr.read(8), "<II")
+        for _ in range(self.transform_reference_count):
+            (transform_node, first_vertex, vertex_count, weight) = unpack(
+                rdr.read(16), "<3Ii"
+            )
+            self.transform_node.append(transform_node)
+            self.first_vertex.append(first_vertex)
+            self.vertex_count.append(vertex_count)
+            self.weight.append(weight)
 
 
 @dataclass
@@ -913,4 +925,7 @@ class Loader:
             self.file.read(4)
 
     def get_object_by_id(self, obj_id):
+        """
+        Returns an object based on id
+        """
         return self.objects[obj_id - 1]
