@@ -154,6 +154,15 @@ class Header:
         ) = unpack("<?II", rdr.read(9))
         self.authoring_field = rdr.read().rstrip(b"\x00").decode("utf-8")
 
+    def __repr__(self):
+        return (
+            f"Header -> Version: {self.version_number[0]}.{self.version_number[1]}\n"
+            f"          Has external references: {self.has_external_references}\n"
+            f"          Total file size: {self.total_file_size}\n"
+            f"          Approximate content size: {self.approximate_content_size}\n"
+            f"          Authoring field: {self.authoring_field}"
+        )
+
 
 @dataclass
 class ExternalReference:

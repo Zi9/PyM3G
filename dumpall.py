@@ -8,9 +8,11 @@ start = timeit.default_timer()
 a = m3g.Loader(argv[1])
 stop = timeit.default_timer()
 index = 1
+print("Printing all objects\n")
 for o in a.objects:
     if not isinstance(o, str):
-        print(f"{index} - {o}")
+        # print(f"{index} - {o}")
+        print(f"{o}")
     else:
         print(f"Missing reader for {o}")
     index += 1
