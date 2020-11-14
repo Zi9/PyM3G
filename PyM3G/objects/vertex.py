@@ -77,7 +77,7 @@ class VertexArray(Object3D):
             c_t = "f"
             c_s = 4
         # else:
-            # log.error("Error reading vertex array")
+        # log.error("Error reading vertex array")
         if self.encoding == 0:
             for _ in range(self.vertex_count):
                 self.vertices.append(

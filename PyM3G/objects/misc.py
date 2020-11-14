@@ -19,13 +19,16 @@ class Header:
         self.authoring_field = None
 
     def __str__(self):
-        return obj2str("Header",
-                       [("Version", f"{self.version[0]}.{self.version[1]}"),
-                        ("Has external references", self.has_external_references),
-                        ("Total file size", self.total_file_size),
-                        ("Approximate content size", self.approximate_content_size),
-                        ("Authoring field text", f"'{self.authoring_field}'")])
-
+        return obj2str(
+            "Header",
+            [
+                ("Version", f"{self.version[0]}.{self.version[1]}"),
+                ("Has external references", self.has_external_references),
+                ("Total file size", self.total_file_size),
+                ("Approximate content size", self.approximate_content_size),
+                ("Authoring field text", f"'{self.authoring_field}'"),
+            ],
+        )
 
     def read(self, reader):
         self.version = unpack("<BB", reader.read(2))
@@ -46,8 +49,7 @@ class ExternalReference:
         self.uri = None
 
     def __str__(self):
-        return obj2str("External Reference",
-                       [("URI", self.uri)])
+        return obj2str("External Reference", [("URI", self.uri)])
 
     def read(self, reader):
         self.uri = reader.read().rstrip(b"\x00").decode("utf-8")
@@ -72,17 +74,21 @@ class Background(Object3D):
         self.color_clear_enabled = None
 
     def __str__(self):
-        return obj2str("Background",
-                       [("Color", self.background_color),
-                        ("Image", self.background_image),
-                        ("Image Mode X", self.background_image_mode_x),
-                        ("Image Mode Y", self.background_image_mode_y),
-                        ("Crop X", self.crop_x),
-                        ("Crop Y", self.crop_y),
-                        ("Crop Width", self.crop_width),
-                        ("Crop Height", self.crop_height),
-                        ("Depth Clear Enabled", self.depth_clear_enabled),
-                        ("Color Clear Enabled", self.color_clear_enabled)])
+        return obj2str(
+            "Background",
+            [
+                ("Color", self.background_color),
+                ("Image", self.background_image),
+                ("Image Mode X", self.background_image_mode_x),
+                ("Image Mode Y", self.background_image_mode_y),
+                ("Crop X", self.crop_x),
+                ("Crop Y", self.crop_y),
+                ("Crop Width", self.crop_width),
+                ("Crop Height", self.crop_height),
+                ("Depth Clear Enabled", self.depth_clear_enabled),
+                ("Color Clear Enabled", self.color_clear_enabled),
+            ],
+        )
 
     def read(self, reader):
         super().read(reader)
@@ -115,13 +121,17 @@ class Image2D(Object3D):
         self.pixels = []
 
     def __str__(self):
-        return obj2str("Image2D",
-                       [("Format", self.image_format),
-                        ("Is Mutable", self.is_mutable),
-                        ("Size", f"{self.width} x {self.height}"),
-                        ("Height", self.height),
-                        ("Palette", f"Array of {len(self.palette)} items"),
-                        ("Pixels", f"Array of {len(self.pixels)} items")])
+        return obj2str(
+            "Image2D",
+            [
+                ("Format", self.image_format),
+                ("Is Mutable", self.is_mutable),
+                ("Size", f"{self.width} x {self.height}"),
+                ("Height", self.height),
+                ("Palette", f"Array of {len(self.palette)} items"),
+                ("Pixels", f"Array of {len(self.pixels)} items"),
+            ],
+        )
 
     def read(self, reader):
         super().read(reader)
