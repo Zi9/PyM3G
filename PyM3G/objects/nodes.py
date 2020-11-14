@@ -2,6 +2,7 @@
 Contains classes for scenegraph node objects
 """
 from struct import unpack
+from ..util import obj2str
 from .base import Node
 
 
@@ -19,6 +20,19 @@ class Camera(Node):
         self.aspect_ratio = None
         self.near = None
         self.far = None
+
+    def __str__(self):
+        return obj2str(
+            "Camera",
+            [
+                ("Projection Type", self.projection_type),
+                ("Projection Matrix", self.projection_matrix),
+                ("Fov Y", self.fovy),
+                ("Aspect Ratio", self.aspect_ratio),
+                ("Near", self.near),
+                ("Far", self.far)
+            ]
+        )
 
     def read(self, reader):
         super().read(reader)
@@ -39,6 +53,14 @@ class Group(Node):
     def __init__(self):
         super().__init__()
         self.children = []
+
+    def __str__(self):
+        return obj2str(
+            "Group",
+            [
+                ("Children", self.children)
+            ]
+        )
 
     def read(self, reader):
         super().read(reader)
@@ -62,6 +84,21 @@ class Light(Node):
         self.intensity = None
         self.spot_angle = None
         self.spot_exponent = None
+
+    def __str__(self):
+        return obj2str(
+            "Light",
+            [
+                ("Attenuation Constant", self.attenuation_constant),
+                ("Attenuation Linear", self.attenuation_linear),
+                ("Attenuation Quadratic", self.attenuation_quadratic),
+                ("Color", self.color),
+                ("Mode", self.mode),
+                ("Intensity", self.intensity),
+                ("Spot Angle", self.spot_angle),
+                ("Spot Exponent", self.spot_exponent)
+            ]
+        )
 
     def read(self, reader):
         super().read(reader)
@@ -88,6 +125,17 @@ class Mesh(Node):
         self.index_buffer = []
         self.appearance = []
 
+    def __str__(self):
+        return obj2str(
+            "Mesh",
+            [
+                ("Vertex Buffer", self.vertex_buffer),
+                ("Submesh Count", self.submesh_count),
+                ("Index Buffer", self.index_buffer),
+                ("Appearance", self.appearance)
+            ]
+        )
+
     def read(self, reader):
         super().read(reader)
         self.vertex_buffer, self.submesh_count = unpack("<II", reader.read(8))
@@ -110,6 +158,20 @@ class Sprite(Node):
         self.crop_y = None
         self.crop_width = None
         self.crop_height = None
+
+    def __str__(self):
+        return obj2str(
+            "Sprite",
+            [
+                ("Image", self.image),
+                ("Appearance", self.appearance),
+                ("Is Scaled", self.is_scaled),
+                ("Crop X", self.crop_x),
+                ("Crop Y", self.crop_y),
+                ("Crop Width", self.crop_width),
+                ("Crop Height", self.crop_height)
+            ]
+        )
 
     def read(self, reader):
         super().read(reader)

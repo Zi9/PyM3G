@@ -2,6 +2,7 @@
 Contains classes related to animation
 """
 from struct import unpack
+from ..util import obj2str
 from .base import Object3D
 
 
@@ -18,6 +19,19 @@ class AnimationController(Object3D):
         self.active_interval_end = None
         self.reference_sequence_time = None
         self.reference_world_time = None
+
+    def __str__(self):
+        return obj2str(
+            "AnimationController",
+            [
+                ("Speed", self.speed),
+                ("Weight", self.weight),
+                ("Active Interval Start", self.active_interval_start),
+                ("Active Interval End", self.active_interval_end),
+                ("Reference Sequence Time", self.reference_sequence_time),
+                ("Reference World Time", self.reference_world_time),
+            ],
+        )
 
     def read(self, reader):
         super().read(reader)
@@ -42,6 +56,16 @@ class AnimationTrack(Object3D):
         self.keyframe_sequence = None
         self.animation_controller = None
         self.property_id = None
+
+    def __str__(self):
+        return obj2str(
+            "AnimationTrack",
+            [
+                ("Keyframe Sequence", self.keyframe_sequence),
+                ("Animation Controller", self.animation_controller),
+                ("Property ID", self.property_id),
+            ],
+        )
 
     def read(self, reader):
         super().read(reader)
@@ -69,6 +93,25 @@ class KeyframeSequence(Object3D):
         self.vector_value = []
         self.vector_bias = []
         self.vector_scale = []
+
+    def __str__(self):
+        return obj2str(
+            "KeyframeSequence",
+            [
+                ("Interpolation", self.interpolation),
+                ("Repeat Mode", self.repeat_mode),
+                ("Encoding", self.encoding),
+                ("Duration", self.duration),
+                ("Valid Range First", self.valid_range_first),
+                ("Valid Range Last", self.valid_range_last),
+                ("Component Count", self.component_count),
+                ("Keyframe Count", self.keyframe_count),
+                ("Time", f"Array of {len(self.time)} items"),
+                ("Vector Value", f"Array of {len(self.vector_value)} items"),
+                ("Vector Bias", f"Array of {len(self.vector_bias)} items"),
+                ("Vector Scale", f"Array of {len(self.vector_scale)} items"),
+            ],
+        )
 
     def read(self, reader):
         super().read(reader)
