@@ -1,3 +1,6 @@
+"""
+Contains subclasses of scenegraph node classes
+"""
 from struct import unpack
 from .nodes import Group, Mesh
 
@@ -13,9 +16,9 @@ class MorphingMesh(Mesh):
         self.morph_target = []
         self.initial_weight = []
 
-    def read(self, rdr):
-        super().read(rdr)
-        self.morph_target_count = unpack(rdr.read(4), "<I")
+    def read(self, reader):
+        super().read(reader)
+        self.morph_target_count = unpack(reader.read(4), "<I")
         for _ in range(self.morph_target_count):
             morph_target, initial_weight = unpack(8, "<If")
             self.morph_target.append(morph_target)
@@ -36,12 +39,12 @@ class SkinnedMesh(Mesh):
         self.vertex_count = []
         self.weight = []
 
-    def read(self, rdr):
-        super().read(rdr)
-        self.skeleton, self.transform_reference_count = unpack(rdr.read(8), "<II")
+    def read(self, reader):
+        super().read(reader)
+        self.skeleton, self.transform_reference_count = unpack(reader.read(8), "<II")
         for _ in range(self.transform_reference_count):
             (transform_node, first_vertex, vertex_count, weight) = unpack(
-                rdr.read(16), "<3Ii"
+                reader.read(16), "<3Ii"
             )
             self.transform_node.append(transform_node)
             self.first_vertex.append(first_vertex)
@@ -59,6 +62,6 @@ class World(Group):
         self.active_camera = None
         self.background = None
 
-    def read(self, rdr):
-        super().read(rdr)
-        self.active_camera, self.background = unpack("<II", rdr.read(8))
+    def read(self, reader):
+        super().read(reader)
+        self.active_camera, self.background = unpack("<II", reader.read(8))

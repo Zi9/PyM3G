@@ -1,3 +1,6 @@
+"""
+Contains classes for 3D data
+"""
 from struct import unpack
 from .base import Object3D
 
@@ -14,31 +17,31 @@ class TriangleStripArray(Object3D):
         self.indices = []
         self.strip_lengths = []
 
-    def read(self, rdr):
-        super().read(rdr)
+    def read(self, reader):
+        super().read(reader)
         self.start_index = 0
-        self.encoding = unpack("<B", rdr.read(1))[0]
+        self.encoding = unpack("<B", reader.read(1))[0]
         if self.encoding == 0:
-            self.start_index = unpack("<I", rdr.read(4))[0]
+            self.start_index = unpack("<I", reader.read(4))[0]
         elif self.encoding == 1:
-            self.start_index = unpack("<B", rdr.read(1))[0]
+            self.start_index = unpack("<B", reader.read(1))[0]
         elif self.encoding == 2:
-            self.start_index = unpack("<H", rdr.read(2))[0]
+            self.start_index = unpack("<H", reader.read(2))[0]
         elif self.encoding == 128:
-            icount = unpack("<I", rdr.read(4))[0]
+            icount = unpack("<I", reader.read(4))[0]
             for _ in range(icount):
-                self.indices.append(unpack("<I", rdr.read(4))[0])
+                self.indices.append(unpack("<I", reader.read(4))[0])
         elif self.encoding == 129:
-            icount = unpack("<I", rdr.read(4))[0]
+            icount = unpack("<I", reader.read(4))[0]
             for _ in range(icount):
-                self.indices.append(unpack("<B", rdr.read(1))[0])
+                self.indices.append(unpack("<B", reader.read(1))[0])
         elif self.encoding == 130:
-            icount = unpack("<I", rdr.read(4))[0]
+            icount = unpack("<I", reader.read(4))[0]
             for _ in range(icount):
-                self.indices.append(unpack("<H", rdr.read(2))[0])
-        scount = unpack("<I", rdr.read(4))[0]
+                self.indices.append(unpack("<H", reader.read(2))[0])
+        scount = unpack("<I", reader.read(4))[0]
         for _ in range(scount):
-            self.strip_lengths.append(unpack("<I", rdr.read(4))[0])
+            self.strip_lengths.append(unpack("<I", reader.read(4))[0])
 
 
 class VertexArray(Object3D):
@@ -55,15 +58,15 @@ class VertexArray(Object3D):
         self.vertex_count = None
         self.vertices = []
 
-    def read(self, rdr):
-        super().read(rdr)
+    def read(self, reader):
+        super().read(reader)
         self.vertices = []
         (
             self.component_size,
             self.component_count,
             self.encoding,
             self.vertex_count,
-        ) = unpack("<3BH", rdr.read(5))
+        ) = unpack("<3BH", reader.read(5))
         if self.component_size == 1:
             c_t = "b"
             c_s = 1
@@ -80,7 +83,7 @@ class VertexArray(Object3D):
                 self.vertices.append(
                     unpack(
                         "<" + str(self.component_count) + c_t,
-                        rdr.read(self.component_count * c_s),
+                        reader.read(self.component_count * c_s),
                     )
                 )
         elif self.encoding == 1:
@@ -88,7 +91,7 @@ class VertexArray(Object3D):
             for _ in range(self.vertex_count):
                 vtx = unpack(
                     "<" + str(self.component_count) + c_t,
-                    rdr.read(self.component_count * c_s),
+                    reader.read(self.component_count * c_s),
                 )
                 if self.component_count == 2:
                     tvtx = (delta[0] + vtx[0], delta[1] + vtx[1])
@@ -124,22 +127,22 @@ class VertexBuffer(Object3D):
         self.tex_coord_bias = []
         self.tex_coord_scale = []
 
-    def read(self, rdr):
-        super().read(rdr)
+    def read(self, reader):
+        super().read(reader)
         self.tex_coords = []
         self.tex_coord_bias = []
         self.tex_coord_scale = []
-        self.default_color = unpack("<4B", rdr.read(4))
-        self.positions = unpack("<I", rdr.read(4))[0]
-        self.position_bias = unpack("<3f", rdr.read(12))
+        self.default_color = unpack("<4B", reader.read(4))
+        self.positions = unpack("<I", reader.read(4))[0]
+        self.position_bias = unpack("<3f", reader.read(12))
         (
             self.position_scale,
             self.normals,
             self.colors,
             self.texcoord_array_count,
-        ) = unpack("<f3I", rdr.read(16))
+        ) = unpack("<f3I", reader.read(16))
         if self.texcoord_array_count > 0:
             for _ in range(self.texcoord_array_count):
-                self.tex_coords.append(unpack("<I", rdr.read(4))[0])
-                self.tex_coord_bias.append(unpack("<3f", rdr.read(12)))
-                self.tex_coord_scale.append(unpack("<f", rdr.read(4))[0])
+                self.tex_coords.append(unpack("<I", reader.read(4))[0])
+                self.tex_coord_bias.append(unpack("<3f", reader.read(12)))
+                self.tex_coord_scale.append(unpack("<f", reader.read(4))[0])

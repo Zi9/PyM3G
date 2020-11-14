@@ -1,3 +1,6 @@
+"""
+Contains base classes for objects
+"""
 from struct import unpack
 
 
@@ -12,14 +15,14 @@ class Object3D:
         self.animation_tracks = []
         self.user_parameters = {}
 
-    def read(self, rdr):
-        self.user_id, at_count = unpack("<II", rdr.read(8))
+    def read(self, reader):
+        self.user_id, at_count = unpack("<II", reader.read(8))
         for _ in range(at_count):
-            self.animation_tracks.append(unpack("<I", rdr.read(4))[0])
-        up_count = unpack("<I", rdr.read(4))[0]
+            self.animation_tracks.append(unpack("<I", reader.read(4))[0])
+        up_count = unpack("<I", reader.read(4))[0]
         for _ in range(up_count):
-            pid, psz = unpack("<II", rdr.read(8))
-            self.user_parameters[pid] = rdr.read(psz)
+            pid, psz = unpack("<II", reader.read(8))
+            self.user_parameters[pid] = reader.read(psz)
 
 
 class Transformable(Object3D):
@@ -38,17 +41,17 @@ class Transformable(Object3D):
         self.has_general_transform = None
         self.transform = None
 
-    def read(self, rdr):
-        super().read(rdr)
-        self.has_component_transform = unpack("<?", rdr.read(1))[0]
+    def read(self, reader):
+        super().read(reader)
+        self.has_component_transform = unpack("<?", reader.read(1))[0]
         if self.has_component_transform:
-            self.translation = unpack("<3f", rdr.read(12))
-            self.scale = unpack("<3f", rdr.read(12))
-            self.orientation_angle = unpack("<f", rdr.read(4))[0]
-            self.orientation_axis = unpack("<3f", rdr.read(12))
-        self.has_general_transform = unpack("<?", rdr.read(1))[0]
+            self.translation = unpack("<3f", reader.read(12))
+            self.scale = unpack("<3f", reader.read(12))
+            self.orientation_angle = unpack("<f", reader.read(4))[0]
+            self.orientation_axis = unpack("<3f", reader.read(12))
+        self.has_general_transform = unpack("<?", reader.read(1))[0]
         if self.has_general_transform:
-            self.transform = unpack("<16f", rdr.read(64))
+            self.transform = unpack("<16f", reader.read(64))
 
 
 class Node(Transformable):
@@ -68,16 +71,16 @@ class Node(Transformable):
         self.z_reference = None
         self.y_reference = None
 
-    def read(self, rdr):
-        super().read(rdr)
+    def read(self, reader):
+        super().read(reader)
         (
             self.enable_rendering,
             self.enable_picking,
             self.alpha_factor,
             self.scope,
             self.has_alignment,
-        ) = unpack("<??BI?", rdr.read(8))
+        ) = unpack("<??BI?", reader.read(8))
         if self.has_alignment:
             (self.z_target, self.y_target, self.z_reference, self.y_reference) = unpack(
-                "<BBII", rdr.read(10)
+                "<BBII", reader.read(10)
             )

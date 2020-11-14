@@ -1,3 +1,6 @@
+"""
+Contains classes related to animation
+"""
 from struct import unpack
 from .base import Object3D
 
@@ -16,8 +19,8 @@ class AnimationController(Object3D):
         self.reference_sequence_time = None
         self.reference_world_time = None
 
-    def read(self, rdr):
-        super().read(rdr)
+    def read(self, reader):
+        super().read(reader)
         (
             self.speed,
             self.weight,
@@ -25,7 +28,7 @@ class AnimationController(Object3D):
             self.active_interval_end,
             self.reference_sequence_time,
             self.reference_world_time,
-        ) = unpack("<ffIIfI", rdr.read(24))
+        ) = unpack("<ffIIfI", reader.read(24))
 
 
 class AnimationTrack(Object3D):
@@ -40,10 +43,10 @@ class AnimationTrack(Object3D):
         self.animation_controller = None
         self.property_id = None
 
-    def read(self, rdr):
-        super().read(rdr)
+    def read(self, reader):
+        super().read(reader)
         (self.keyframe_sequence, self.animation_controller, self.property_id) = unpack(
-            "<3I", rdr.read(12)
+            "<3I", reader.read(12)
         )
 
 
@@ -67,8 +70,8 @@ class KeyframeSequence(Object3D):
         self.vector_bias = []
         self.vector_scale = []
 
-    def read(self, rdr):
-        super().read(rdr)
+    def read(self, reader):
+        super().read(reader)
         (
             self.interpolation,
             self.repeat_mode,
@@ -78,38 +81,42 @@ class KeyframeSequence(Object3D):
             self.valid_range_last,
             self.component_count,
             self.keyframe_count,
-        ) = unpack(rdr.read(23), "<3B5I")
+        ) = unpack(reader.read(23), "<3B5I")
         if self.encoding == 0:
             for _ in range(self.keyframe_count):
-                self.time.append(unpack(rdr.read(4), "<I")[0])
+                self.time.append(unpack(reader.read(4), "<I")[0])
                 self.vector_value.append(
                     unpack(
-                        rdr.read(4 * self.component_count), f"<{self.component_count}f"
+                        reader.read(4 * self.component_count),
+                        f"<{self.component_count}f",
                     )
                 )
         elif self.encoding == 1:
             self.vector_bias = unpack(
-                rdr.read(4 * self.component_count), f"<{self.component_count}f"
+                reader.read(4 * self.component_count), f"<{self.component_count}f"
             )
             self.vector_scale = unpack(
-                rdr.read(4 * self.component_count), f"<{self.component_count}f"
+                reader.read(4 * self.component_count), f"<{self.component_count}f"
             )
             for _ in range(self.keyframe_count):
-                self.time.append(unpack(rdr.read(4), "<I")[0])
+                self.time.append(unpack(reader.read(4), "<I")[0])
                 self.vector_value.append(
-                    unpack(rdr.read(self.component_count), f"<{self.component_count}B")
+                    unpack(
+                        reader.read(self.component_count), f"<{self.component_count}B"
+                    )
                 )
         elif self.encoding == 2:
             self.vector_bias = unpack(
-                rdr.read(4 * self.component_count), f"<{self.component_count}f"
+                reader.read(4 * self.component_count), f"<{self.component_count}f"
             )
             self.vector_scale = unpack(
-                rdr.read(4 * self.component_count), f"<{self.component_count}f"
+                reader.read(4 * self.component_count), f"<{self.component_count}f"
             )
             for _ in range(self.keyframe_count):
-                self.time.append(unpack(rdr.read(4), "<I")[0])
+                self.time.append(unpack(reader.read(4), "<I")[0])
                 self.vector_value.append(
                     unpack(
-                        rdr.read(2 * self.component_count), f"<{self.component_count}H"
+                        reader.read(2 * self.component_count),
+                        f"<{self.component_count}H",
                     )
                 )

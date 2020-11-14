@@ -1,3 +1,6 @@
+"""
+Contains miscellaneous classes
+"""
 from struct import unpack
 from ..util import obj2str
 from .base import Object3D
@@ -24,14 +27,14 @@ class Header:
                         ("Authoring field text", f"'{self.authoring_field}'")])
 
 
-    def read(self, rdr):
-        self.version = unpack("<BB", rdr.read(2))
+    def read(self, reader):
+        self.version = unpack("<BB", reader.read(2))
         (
             self.has_external_references,
             self.total_file_size,
             self.approximate_content_size,
-        ) = unpack("<?II", rdr.read(9))
-        self.authoring_field = rdr.read().rstrip(b"\x00").decode("utf-8")
+        ) = unpack("<?II", reader.read(9))
+        self.authoring_field = reader.read().rstrip(b"\x00").decode("utf-8")
 
 
 class ExternalReference:
@@ -46,8 +49,8 @@ class ExternalReference:
         return obj2str("External Reference",
                        [("URI", self.uri)])
 
-    def read(self, rdr):
-        self.uri = rdr.read().rstrip(b"\x00").decode("utf-8")
+    def read(self, reader):
+        self.uri = reader.read().rstrip(b"\x00").decode("utf-8")
 
 
 class Background(Object3D):
@@ -81,9 +84,9 @@ class Background(Object3D):
                         ("Depth Clear Enabled", self.depth_clear_enabled),
                         ("Color Clear Enabled", self.color_clear_enabled)])
 
-    def read(self, rdr):
-        super().read(rdr)
-        self.background_color = unpack("<4f", rdr.read(16))
+    def read(self, reader):
+        super().read(reader)
+        self.background_color = unpack("<4f", reader.read(16))
         (
             self.background_image,
             self.background_image_mode_x,
@@ -94,7 +97,7 @@ class Background(Object3D):
             self.crop_height,
             self.depth_clear_enabled,
             self.color_clear_enabled,
-        ) = unpack("<IBB4I??", rdr.read(24))
+        ) = unpack("<IBB4I??", reader.read(24))
 
 
 class Image2D(Object3D):
@@ -120,16 +123,15 @@ class Image2D(Object3D):
                         ("Palette", f"Array of {len(self.palette)} items"),
                         ("Pixels", f"Array of {len(self.pixels)} items")])
 
-    def read(self, rdr):
-        super().read(rdr)
+    def read(self, reader):
+        super().read(reader)
         (self.image_format, self.is_mutable, self.width, self.height) = unpack(
-            "<B?II", rdr.read(10)
+            "<B?II", reader.read(10)
         )
         if not self.is_mutable:
-            pal = unpack("<I", rdr.read(4))[0]
+            pal = unpack("<I", reader.read(4))[0]
             for _ in range(pal):
-                self.palette.append(unpack("<B", rdr.read(1))[0])
-            pxl = unpack("<I", rdr.read(4))[0]
+                self.palette.append(unpack("<B", reader.read(1))[0])
+            pxl = unpack("<I", reader.read(4))[0]
             for _ in range(pxl):
-                self.pixels.append(unpack("<B", rdr.read(1))[0])
-
+                self.pixels.append(unpack("<B", reader.read(1))[0])
