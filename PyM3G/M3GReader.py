@@ -34,6 +34,33 @@ class M3GReader:
     Reader for JSR 184 M3G data files
     """
 
+    _type2class = {
+        0: Header,
+        1: AnimationController,
+        2: AnimationTrack,
+        3: Appearance,
+        4: Background,
+        5: Camera,
+        6: CompositingMode,
+        7: Fog,
+        8: PolygonMode,
+        9: Group,
+        10: Image2D,
+        11: TriangleStripArray,
+        12: Light,
+        13: Material,
+        14: Mesh,
+        15: MorphingMesh,
+        16: SkinnedMesh,
+        17: Texture2D,
+        18: Sprite,
+        19: KeyframeSequence,
+        20: VertexArray,
+        21: VertexBuffer,
+        22: World,
+        255: ExternalReference
+    }
+
     def __init__(self, path):
         self.status = M3GStatus.FAILED
         self.objects = []
@@ -57,59 +84,13 @@ class M3GReader:
 
     def parse_object(self, objtype, data):
         rdr = BytesIO(data)
-        if objtype == 0:
-            obj = Header()
-        elif objtype == 1:
-            obj = AnimationController()
-        elif objtype == 2:
-            obj = AnimationTrack()
-        elif objtype == 3:
-            obj = Appearance()
-        elif objtype == 4:
-            obj = Background()
-        elif objtype == 5:
-            obj = Camera()
-        elif objtype == 6:
-            obj = CompositingMode()
-        elif objtype == 7:
-            obj = Fog()
-        elif objtype == 8:
-            obj = PolygonMode()
-        elif objtype == 9:
-            obj = Group()
-        elif objtype == 10:
-            obj = Image2D()
-        elif objtype == 11:
-            obj = TriangleStripArray()
-        elif objtype == 12:
-            obj = Light()
-        elif objtype == 13:
-            obj = Material()
-        elif objtype == 14:
-            obj = Mesh()
-        elif objtype == 15:
-            obj = MorphingMesh()
-        elif objtype == 16:
-            obj = SkinnedMesh()
-        elif objtype == 17:
-            obj = Texture2D()
-        elif objtype == 18:
-            obj = Sprite()
-        elif objtype == 19:
-            obj = KeyframeSequence()
-        elif objtype == 20:
-            obj = VertexArray()
-        elif objtype == 21:
-            obj = VertexBuffer()
-        elif objtype == 22:
-            obj = World()
-        elif objtype == 255:
-            obj = ExternalReference()
+        if objtype in self._type2class:
+            obj = self._type2class.get(objtype)()
         else:
             obj = None
             log.error("Invalid object type(%d) found", objtype)
             rdr.close()
-            return
+            return None
         log.info("Found [bold cyan]%s[/] object", obj.__class__.__name__,
                  extra={"markup": True})
         obj.read(rdr)
