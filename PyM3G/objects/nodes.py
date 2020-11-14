@@ -1,3 +1,6 @@
+"""
+Contains classes for scenegraph node objects
+"""
 from struct import unpack
 from .base import Node
 
@@ -17,14 +20,14 @@ class Camera(Node):
         self.near = None
         self.far = None
 
-    def read(self, rdr):
-        super().read(rdr)
-        self.projection_type = unpack("<B", rdr.read(1))[0]
+    def read(self, reader):
+        super().read(reader)
+        self.projection_type = unpack("<B", reader.read(1))[0]
         if self.projection_type == 48:
-            self.projection_matrix = unpack("<16f", rdr.read(64))
+            self.projection_matrix = unpack("<16f", reader.read(64))
         else:
             (self.fovy, self.aspect_ratio, self.near, self.far) = unpack(
-                "<4f", rdr.read(16)
+                "<4f", reader.read(16)
             )
 
 
@@ -37,11 +40,11 @@ class Group(Node):
         super().__init__()
         self.children = []
 
-    def read(self, rdr):
-        super().read(rdr)
-        count = unpack("<I", rdr.read(4))[0]
+    def read(self, reader):
+        super().read(reader)
+        count = unpack("<I", reader.read(4))[0]
         for _ in range(count):
-            self.children.append(unpack("<I", rdr.read(4))[0])
+            self.children.append(unpack("<I", reader.read(4))[0])
 
 
 class Light(Node):
@@ -60,16 +63,16 @@ class Light(Node):
         self.spot_angle = None
         self.spot_exponent = None
 
-    def read(self, rdr):
-        super().read(rdr)
+    def read(self, reader):
+        super().read(reader)
         (
             self.attenuation_constant,
             self.attenuation_linear,
             self.attenuation_quadratic,
-        ) = unpack("<3f", rdr.read(12))
-        self.color = unpack("<3f", rdr.read(12))
+        ) = unpack("<3f", reader.read(12))
+        self.color = unpack("<3f", reader.read(12))
         (self.intensity, self.spot_angle, self.spot_exponent) = unpack(
-            "<3f", rdr.read(12)
+            "<3f", reader.read(12)
         )
 
 
@@ -85,12 +88,12 @@ class Mesh(Node):
         self.index_buffer = []
         self.appearance = []
 
-    def read(self, rdr):
-        super().read(rdr)
-        self.vertex_buffer, self.submesh_count = unpack("<II", rdr.read(8))
+    def read(self, reader):
+        super().read(reader)
+        self.vertex_buffer, self.submesh_count = unpack("<II", reader.read(8))
         for _ in range(self.submesh_count):
-            self.index_buffer.append(unpack("<I", rdr.read(4))[0])
-            self.appearance.append(unpack("<I", rdr.read(4))[0])
+            self.index_buffer.append(unpack("<I", reader.read(4))[0])
+            self.appearance.append(unpack("<I", reader.read(4))[0])
 
 
 class Sprite(Node):
@@ -108,8 +111,8 @@ class Sprite(Node):
         self.crop_width = None
         self.crop_height = None
 
-    def read(self, rdr):
-        super().read(rdr)
+    def read(self, reader):
+        super().read(reader)
         (
             self.image,
             self.appearance,
@@ -118,4 +121,4 @@ class Sprite(Node):
             self.crop_y,
             self.crop_width,
             self.crop_height,
-        ) = unpack("<II?4i", rdr.read(25))
+        ) = unpack("<II?4i", reader.read(25))

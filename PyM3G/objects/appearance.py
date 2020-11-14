@@ -1,3 +1,6 @@
+"""
+Contains classes related to appearance
+"""
 from struct import unpack
 from .base import Object3D, Transformable
 
@@ -17,8 +20,8 @@ class Appearance(Object3D):
         self.material = None
         self.textures = []
 
-    def read(self, rdr):
-        super().read(rdr)
+    def read(self, reader):
+        super().read(reader)
         self.textures = []
         (
             self.layer,
@@ -27,9 +30,9 @@ class Appearance(Object3D):
             self.polygon_mode,
             self.material,
             texcount,
-        ) = unpack("<B5I", rdr.read(21))
+        ) = unpack("<B5I", reader.read(21))
         for _ in range(texcount):
-            self.textures.append(unpack("<I", rdr.read(4))[0])
+            self.textures.append(unpack("<I", reader.read(4))[0])
 
 
 class CompositingMode(Object3D):
@@ -48,8 +51,8 @@ class CompositingMode(Object3D):
         self.depth_offset_factor = None
         self.depth_offset_units = None
 
-    def read(self, rdr):
-        super().read(rdr)
+    def read(self, reader):
+        super().read(reader)
         (
             self.depth_test_enabled,
             self.depth_write_enabled,
@@ -59,7 +62,7 @@ class CompositingMode(Object3D):
             self.alpha_threshold,
             self.depth_offset_factor,
             self.depth_offset_units,
-        ) = unpack("<4?BBff", rdr.read(14))
+        ) = unpack("<4?BBff", reader.read(14))
 
 
 class Fog(Object3D):
@@ -75,14 +78,14 @@ class Fog(Object3D):
         self.near = None
         self.far = None
 
-    def read(self, rdr):
-        super().read(rdr)
-        self.color = unpack("<3f", rdr.read(12))
-        self.mode = unpack("<B", rdr.read(1))[0]
+    def read(self, reader):
+        super().read(reader)
+        self.color = unpack("<3f", reader.read(12))
+        self.mode = unpack("<B", reader.read(1))[0]
         if self.mode == 80:
-            self.density = unpack("<f", rdr.read(4))[0]
+            self.density = unpack("<f", reader.read(4))[0]
         elif self.mode == 81:
-            (self.near.self.far) = unpack("<2f", rdr.read(8))
+            (self.near.self.far) = unpack("<2f", reader.read(8))
         # else:
             # log.error("Invalid fog mode")
 
@@ -101,14 +104,14 @@ class Material(Object3D):
         self.shininess = None
         self.vertex_color_tracking_enabled = None
 
-    def read(self, rdr):
-        super().read(rdr)
-        self.ambient_color = unpack("<3B", rdr.read(3))
-        self.diffuse_color = unpack("<4B", rdr.read(4))
-        self.emissive_color = unpack("<3B", rdr.read(3))
-        self.specular_color = unpack("<3B", rdr.read(3))
+    def read(self, reader):
+        super().read(reader)
+        self.ambient_color = unpack("<3B", reader.read(3))
+        self.diffuse_color = unpack("<4B", reader.read(4))
+        self.emissive_color = unpack("<3B", reader.read(3))
+        self.specular_color = unpack("<3B", reader.read(3))
         (self.shininess, self.vertex_color_tracking_enabled) = unpack(
-            "<f?", rdr.read(5)
+            "<f?", reader.read(5)
         )
 
 
@@ -126,8 +129,8 @@ class PolygonMode(Object3D):
         self.local_camera_lighting_enabled = None
         self.perspective_correction_enabled = None
 
-    def read(self, rdr):
-        super().read(rdr)
+    def read(self, reader):
+        super().read(reader)
         (
             self.culling,
             self.shading,
@@ -135,7 +138,7 @@ class PolygonMode(Object3D):
             self.two_sided_lighting_enabled,
             self.local_camera_lighting_enabled,
             self.perspective_correction_enabled,
-        ) = unpack("<3B3?", rdr.read(6))
+        ) = unpack("<3B3?", reader.read(6))
 
 
 class Texture2D(Transformable):
@@ -154,14 +157,14 @@ class Texture2D(Transformable):
         self.level_filter = None
         self.image_filter = None
 
-    def read(self, rdr):
-        super().read(rdr)
-        self.image = unpack("<I", rdr.read(4))[0]
-        self.blend_color = unpack("<3B", rdr.read(3))
+    def read(self, reader):
+        super().read(reader)
+        self.image = unpack("<I", reader.read(4))[0]
+        self.blend_color = unpack("<3B", reader.read(3))
         (
             self.blending,
             self.wrapping_s,
             self.wrapping_t,
             self.level_filter,
             self.image_filter,
-        ) = unpack("<5B", rdr.read(5))
+        ) = unpack("<5B", reader.read(5))
