@@ -1,0 +1,163 @@
+"""
+Module for reading JSR 184 m3g files
+"""
+from enum import Enum, auto
+from io import BytesIO
+from struct import unpack, pack
+import zlib
+
+import logging
+from rich.logging import RichHandler
+
+from .objects.animation import AnimationController, AnimationTrack, KeyframeSequence
+from .objects.appearance import (Appearance, CompositingMode, Fog, Material,
+                                 PolygonMode, Texture2D)
+from .objects.misc import Background, ExternalReference, Header, Image2D
+from .objects.nodes import Camera, Group, Light, Mesh, Sprite
+from .objects.nodes_extra import MorphingMesh, SkinnedMesh, World
+from .objects.vertex import TriangleStripArray, VertexArray, VertexBuffer
+
+_M3G_SIG = b"\xAB\x4A\x53\x52\x31\x38\x34\xBB\x0D\x0A\x1A\x0A"
+
+LOG_LEVEL = "WARNING"
+
+logging.basicConfig(
+    level="NOTSET", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
+)
+log = logging.getLogger("m3g")
+log.setLevel(logging.getLevelName(LOG_LEVEL))
+
+
+class M3GStatus(Enum):
+    """Enum for different Reader and Writer status codes"""
+    SUCCESS = auto()
+    FAILED = auto()
+    CHECKSUM_FAIL = auto()
+
+
+class M3GReader:
+    """
+    Reader for JSR 184 M3G data files
+    """
+
+    def __init__(self, path):
+        self.status = M3GStatus.FAILED
+        self.objects = []
+        self.file = open(path, "rb")
+        if not self.file:
+            log.error("Could not open file %s", path)
+            return
+        if not self.verify_signature():
+            log.error("Invalid M3G file %s", path)
+            self.file.close()
+            return
+        self.read_sections()
+        self.file.close()
+        self.status = M3GStatus.SUCCESS
+
+    def verify_signature(self):
+        """Verify header bytes to make sure this is a valid m3g file"""
+        if self.file.read(12) == _M3G_SIG:
+            return True
+        return False
+
+    def parse_object(self, objtype, data):
+        rdr = BytesIO(data)
+        if objtype == 0:
+            obj = Header()
+        elif objtype == 1:
+            obj = AnimationController()
+        elif objtype == 2:
+            obj = AnimationTrack()
+        elif objtype == 3:
+            obj = Appearance()
+        elif objtype == 4:
+            obj = Background()
+        elif objtype == 5:
+            obj = Camera()
+        elif objtype == 6:
+            obj = CompositingMode()
+        elif objtype == 7:
+            obj = Fog()
+        elif objtype == 8:
+            obj = PolygonMode()
+        elif objtype == 9:
+            obj = Group()
+        elif objtype == 10:
+            obj = Image2D()
+        elif objtype == 11:
+            obj = TriangleStripArray()
+        elif objtype == 12:
+            obj = Light()
+        elif objtype == 13:
+            obj = Material()
+        elif objtype == 14:
+            obj = Mesh()
+        elif objtype == 15:
+            obj = MorphingMesh()
+        elif objtype == 16:
+            obj = SkinnedMesh()
+        elif objtype == 17:
+            obj = Texture2D()
+        elif objtype == 18:
+            obj = Sprite()
+        elif objtype == 19:
+            obj = KeyframeSequence()
+        elif objtype == 20:
+            obj = VertexArray()
+        elif objtype == 21:
+            obj = VertexBuffer()
+        elif objtype == 22:
+            obj = World()
+        elif objtype == 255:
+            obj = ExternalReference()
+        else:
+            obj = None
+            log.error("Invalid object type(%d) found", objtype)
+            rdr.close()
+            return
+        log.info("Found [bold cyan]%s[/] object", obj.__class__.__name__,
+                 extra={"markup": True})
+        obj.read(rdr)
+
+        bytes_unread = len(rdr.read())
+        if not isinstance(obj, str) and bytes_unread > 0:
+            log.warning("%d bytes left unread", bytes_unread)
+        rdr.close()
+        return obj
+
+    def read_objects(self, data):
+        """Reads all objects from a section"""
+        rdr = BytesIO(data)
+        while True:
+            object_header = rdr.read(5)
+            if object_header == b"":
+                break
+            object_type, size = unpack("<BI", object_header)
+            self.objects.append(self.parse_object(object_type, rdr.read(size)))
+        rdr.close()
+
+    def read_sections(self):
+        """Reads all sections from a file"""
+        while True:
+            section_header = self.file.read(9)
+            if section_header == b"":
+                break
+            log.info("Section @ %d", self.file.tell())
+            compression, total_len, uncomp = unpack("<BII", section_header)
+            log.info("Compression: %s", compression)
+            log.info("Total length: %d", total_len)
+            log.info("Uncompressed length: %d", uncomp)
+            section_length = total_len - 13
+            data = self.file.read(section_length)
+            self.read_objects(data)
+            chksum1 = zlib.adler32(pack("<BII", compression, total_len, uncomp) + data)
+            chksum2 = unpack("<I", self.file.read(4))[0]
+            if chksum1 != chksum2:
+                log.error("Checksums do not match, file may be corrupt")
+                return
+            log.info("Checksum validated successfully")
+
+    def get_object_by_id(self, obj_id):
+        """Returns an object based on id"""
+        return self.objects[obj_id - 1]
