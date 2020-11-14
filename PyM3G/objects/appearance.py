@@ -87,7 +87,7 @@ class Fog(Object3D):
         elif self.mode == 81:
             (self.near.self.far) = unpack("<2f", reader.read(8))
         # else:
-            # log.error("Invalid fog mode")
+        # log.error("Invalid fog mode")
 
 
 class Material(Object3D):
