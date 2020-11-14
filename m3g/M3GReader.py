@@ -1,13 +1,14 @@
 """
 Module for reading JSR 184 m3g files
 """
-from enum import Enum, auto
 from io import BytesIO
 from struct import unpack, pack
 import zlib
 
 import logging
 from rich.logging import RichHandler
+
+from .util import M3GStatus
 
 from .objects.animation import AnimationController, AnimationTrack, KeyframeSequence
 from .objects.appearance import (Appearance, CompositingMode, Fog, Material,
@@ -26,13 +27,6 @@ logging.basicConfig(
 )
 log = logging.getLogger("m3g")
 log.setLevel(logging.getLevelName(LOG_LEVEL))
-
-
-class M3GStatus(Enum):
-    """Enum for different Reader and Writer status codes"""
-    SUCCESS = auto()
-    FAILED = auto()
-    CHECKSUM_FAIL = auto()
 
 
 class M3GReader:
