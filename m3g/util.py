@@ -1,3 +1,13 @@
+from enum import Enum, auto
+
+
+class M3GStatus(Enum):
+    """Enum for different Reader and Writer status codes"""
+    SUCCESS = auto()
+    FAILED = auto()
+    CHECKSUM_FAIL = auto()
+
+
 def obj2str(obtype, values):
     typeprinted = False
     typesize = len(obtype) + 4
