@@ -2,6 +2,7 @@
 Contains classes related to appearance
 """
 from struct import unpack
+from ..util import obj2str
 from .base import Object3D, Transformable
 
 
@@ -19,6 +20,19 @@ class Appearance(Object3D):
         self.polygon_mode = None
         self.material = None
         self.textures = []
+
+    def __str__(self):
+        return obj2str(
+            "Appearance",
+            [
+                ("Layer", self.layer),
+                ("Compositing Mode", self.compositing_mode),
+                ("Fog", self.fog),
+                ("Polygon Mode", self.polygon_mode),
+                ("Material", self.material),
+                ("Textures", self.textures),
+            ],
+        )
 
     def read(self, reader):
         super().read(reader)
@@ -51,6 +65,21 @@ class CompositingMode(Object3D):
         self.depth_offset_factor = None
         self.depth_offset_units = None
 
+    def __str__(self):
+        return obj2str(
+            "CompositingMode",
+            [
+                ("Depth Test Enabled", self.depth_test_enabled),
+                ("Depth Write Enabled", self.depth_write_enabled),
+                ("Color Write Enabled", self.color_write_enabled),
+                ("Alpha Write Enabled", self.alpha_write_enabled),
+                ("Blending", self.blending),
+                ("Alpha Threshold", self.alpha_threshold),
+                ("Depth Offset Factor", self.depth_offset_factor),
+                ("Depth Offset Units", self.depth_offset_units),
+            ],
+        )
+
     def read(self, reader):
         super().read(reader)
         (
@@ -78,6 +107,18 @@ class Fog(Object3D):
         self.near = None
         self.far = None
 
+    def __str__(self):
+        return obj2str(
+            "Fog",
+            [
+                ("Color", self.color),
+                ("Mode", self.mode),
+                ("Density", self.density),
+                ("Near", self.near),
+                ("Far", self.far),
+            ],
+        )
+
     def read(self, reader):
         super().read(reader)
         self.color = unpack("<3f", reader.read(12))
@@ -104,6 +145,19 @@ class Material(Object3D):
         self.shininess = None
         self.vertex_color_tracking_enabled = None
 
+    def __str__(self):
+        return obj2str(
+            "Material",
+            [
+                ("Ambient Color", self.ambient_color),
+                ("Diffuse Color", self.diffuse_color),
+                ("Emissive Color", self.emissive_color),
+                ("Specular Color", self.specular_color),
+                ("Shininess", self.shininess),
+                ("Vertex Color Tracking Enabled", self.vertex_color_tracking_enabled),
+            ],
+        )
+
     def read(self, reader):
         super().read(reader)
         self.ambient_color = unpack("<3B", reader.read(3))
@@ -128,6 +182,19 @@ class PolygonMode(Object3D):
         self.two_sided_lighting_enabled = None
         self.local_camera_lighting_enabled = None
         self.perspective_correction_enabled = None
+
+    def __str__(self):
+        return obj2str(
+            "Material",
+            [
+                ("Culling", self.culling),
+                ("Shading", self.shading),
+                ("Winding", self.winding),
+                ("Two Sided Lighting Enabled", self.two_sided_lighting_enabled),
+                ("Local Camera Lighting Enabled", self.local_camera_lighting_enabled),
+                ("Perspective Correction Enabled", self.perspective_correction_enabled),
+            ],
+        )
 
     def read(self, reader):
         super().read(reader)
@@ -156,6 +223,20 @@ class Texture2D(Transformable):
         self.wrapping_t = None
         self.level_filter = None
         self.image_filter = None
+
+    def __str__(self):
+        return obj2str(
+            "Texture2D",
+            [
+                ("Image", self.image),
+                ("Blend Color", self.blend_color),
+                ("Blending", self.blending),
+                ("Wrapping S", self.wrapping_s),
+                ("Wrapping T", self.wrapping_t),
+                ("Level Filter", self.level_filter),
+                ("Image Filter", self.image_filter),
+            ],
+        )
 
     def read(self, reader):
         super().read(reader)

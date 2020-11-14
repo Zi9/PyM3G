@@ -2,6 +2,7 @@
 Contains subclasses of scenegraph node classes
 """
 from struct import unpack
+from ..util import obj2str
 from .nodes import Group, Mesh
 
 
@@ -15,6 +16,16 @@ class MorphingMesh(Mesh):
         self.morph_target_count = None
         self.morph_target = []
         self.initial_weight = []
+
+    def __str__(self):
+        return obj2str(
+            "MorphingMesh",
+            [
+                ("Morph Target Count", self.morph_target_count),
+                ("Morph Target", f"Array of {len(self.morph_target)} items"),
+                ("Initial Weight", f"Array of {len(self.initial_weight)} items")
+            ]
+        )
 
     def read(self, reader):
         super().read(reader)
@@ -39,6 +50,19 @@ class SkinnedMesh(Mesh):
         self.vertex_count = []
         self.weight = []
 
+    def __str__(self):
+        return obj2str(
+            "SkinnedMesh",
+            [
+                ("Skeleton", self.skeleton),
+                ("Transform Reference Count", self.transform_reference_count),
+                ("Transform Node", f"Array of {len(self.transform_node)} items"),
+                ("First Vertex", f"Array of {len(self.first_vertex)} items"),
+                ("Vertex Count", f"Array of {len(self.vertex_count)} items"),
+                ("Weight", f"Array of {len(self.weight)} items")
+            ]
+        )
+
     def read(self, reader):
         super().read(reader)
         self.skeleton, self.transform_reference_count = unpack(reader.read(8), "<II")
@@ -61,6 +85,14 @@ class World(Group):
         super().__init__()
         self.active_camera = None
         self.background = None
+
+    def __str__(self):
+        return obj2str(
+            "World", [
+                ("Active Camera", self.active_camera),
+                ("Background", self.background)
+            ]
+        )
 
     def read(self, reader):
         super().read(reader)

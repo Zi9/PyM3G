@@ -2,6 +2,7 @@
 Contains classes for 3D data
 """
 from struct import unpack
+from ..util import obj2str
 from .base import Object3D
 
 
@@ -16,6 +17,17 @@ class TriangleStripArray(Object3D):
         self.start_index = None
         self.indices = []
         self.strip_lengths = []
+
+    def __str__(self):
+        return obj2str(
+            "TriangleStripArray",
+            [
+                ("Encoding", self.encoding),
+                ("Start Index", self.start_index),
+                ("Indices", f"Array of {len(self.indices)} items"),
+                ("Strip Lengths", f"Array of {len(self.strip_lengths)} items")
+            ]
+        )
 
     def read(self, reader):
         super().read(reader)
@@ -57,6 +69,18 @@ class VertexArray(Object3D):
         self.encoding = None
         self.vertex_count = None
         self.vertices = []
+
+    def __str__(self):
+        return obj2str(
+            "VertexArray",
+            [
+                ("Component Size", self.component_size),
+                ("Component Count", self.component_count),
+                ("Encoding", self.encoding),
+                ("Vertex Count", self.vertex_count),
+                ("Vertices", f"Array of {len(self.vertices)} items")
+            ]
+        )
 
     def read(self, reader):
         super().read(reader)
@@ -127,11 +151,25 @@ class VertexBuffer(Object3D):
         self.tex_coord_bias = []
         self.tex_coord_scale = []
 
+    def __str__(self):
+        return obj2str(
+            "VertexBuffer",
+            [
+                ("Default Color", self.default_color),
+                ("Positions", self.positions),
+                ("Position Bias", self.position_bias),
+                ("Position Scale", self.position_scale),
+                ("Normals", self.normals),
+                ("Colors", self.colors),
+                ("Texcoord Array Count", self.texcoord_array_count),
+                ("Texcoords", f"Array of {len(self.tex_coords)} items"),
+                ("Texcoord Bias", f"Array of {len(self.tex_coord_bias)} items"),
+                ("Texcoord Scale", f"Array of {len(self.tex_coord_scale)} items")
+            ]
+        )
+
     def read(self, reader):
         super().read(reader)
-        self.tex_coords = []
-        self.tex_coord_bias = []
-        self.tex_coord_scale = []
         self.default_color = unpack("<4B", reader.read(4))
         self.positions = unpack("<I", reader.read(4))[0]
         self.position_bias = unpack("<3f", reader.read(12))
