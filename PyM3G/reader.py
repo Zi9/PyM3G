@@ -11,8 +11,14 @@ from rich.logging import RichHandler
 from .util import M3GStatus
 
 from .objects.animation import AnimationController, AnimationTrack, KeyframeSequence
-from .objects.appearance import (Appearance, CompositingMode, Fog, Material,
-                                 PolygonMode, Texture2D)
+from .objects.appearance import (
+    Appearance,
+    CompositingMode,
+    Fog,
+    Material,
+    PolygonMode,
+    Texture2D,
+)
 from .objects.misc import Background, ExternalReference, Header, Image2D
 from .objects.nodes import Camera, Group, Light, Mesh, Sprite
 from .objects.nodes_extra import MorphingMesh, SkinnedMesh, World
@@ -58,7 +64,7 @@ class M3GReader:
         20: VertexArray,
         21: VertexBuffer,
         22: World,
-        255: ExternalReference
+        255: ExternalReference,
     }
 
     def __init__(self, path):
@@ -83,6 +89,7 @@ class M3GReader:
         return False
 
     def parse_object(self, objtype, data):
+        """Parse an object out of a binary data chunk"""
         rdr = BytesIO(data)
         if objtype in self._type2class:
             obj = self._type2class.get(objtype)()
@@ -91,12 +98,15 @@ class M3GReader:
             log.error("Invalid object type(%d) found", objtype)
             rdr.close()
             return None
-        log.info("Found [bold cyan]%s[/] object", obj.__class__.__name__,
-                 extra={"markup": True})
+        log.info(
+            "Found [bold cyan]%s[/] object",
+            obj.__class__.__name__,
+            extra={"markup": True},
+        )
         obj.read(rdr)
 
         bytes_unread = len(rdr.read())
-        if not isinstance(obj, str) and bytes_unread > 0:
+        if obj is None and bytes_unread > 0:
             log.warning("%d bytes left unread", bytes_unread)
         rdr.close()
         return obj
