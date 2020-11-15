@@ -2,7 +2,7 @@
 Contains classes related to animation
 """
 from struct import unpack
-from ..util import obj2str
+from ..util import obj2str, const2str
 from .base import Object3D
 
 
@@ -63,7 +63,7 @@ class AnimationTrack(Object3D):
             [
                 ("Keyframe Sequence", self.keyframe_sequence),
                 ("Animation Controller", self.animation_controller),
-                ("Property ID", self.property_id),
+                ("Property ID", const2str(self.property_id)),
             ],
         )
 
@@ -98,8 +98,8 @@ class KeyframeSequence(Object3D):
         return obj2str(
             "KeyframeSequence",
             [
-                ("Interpolation", self.interpolation),
-                ("Repeat Mode", self.repeat_mode),
+                ("Interpolation", const2str(self.interpolation)),
+                ("Repeat Mode", const2str(self.repeat_mode)),
                 ("Encoding", self.encoding),
                 ("Duration", self.duration),
                 ("Valid Range First", self.valid_range_first),

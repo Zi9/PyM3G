@@ -2,7 +2,7 @@
 Contains miscellaneous classes
 """
 from struct import unpack
-from ..util import obj2str
+from ..util import obj2str, const2str
 from .base import Object3D
 
 
@@ -79,8 +79,8 @@ class Background(Object3D):
             [
                 ("Color", self.background_color),
                 ("Image", self.background_image),
-                ("Image Mode X", self.background_image_mode_x),
-                ("Image Mode Y", self.background_image_mode_y),
+                ("Image Mode X", const2str(self.background_image_mode_x)),
+                ("Image Mode Y", const2str(self.background_image_mode_y)),
                 ("Crop X", self.crop_x),
                 ("Crop Y", self.crop_y),
                 ("Crop Width", self.crop_width),
@@ -124,7 +124,7 @@ class Image2D(Object3D):
         return obj2str(
             "Image2D",
             [
-                ("Format", self.image_format),
+                ("Format", const2str(self.image_format)),
                 ("Is Mutable", self.is_mutable),
                 ("Size", f"{self.width} x {self.height}"),
                 ("Height", self.height),
