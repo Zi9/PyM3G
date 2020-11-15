@@ -2,7 +2,7 @@
 Contains classes related to appearance
 """
 from struct import unpack
-from ..util import obj2str
+from ..util import obj2str, const2str
 from .base import Object3D, Transformable
 
 
@@ -73,7 +73,7 @@ class CompositingMode(Object3D):
                 ("Depth Write Enabled", self.depth_write_enabled),
                 ("Color Write Enabled", self.color_write_enabled),
                 ("Alpha Write Enabled", self.alpha_write_enabled),
-                ("Blending", self.blending),
+                ("Blending", const2str(self.blending)),
                 ("Alpha Threshold", self.alpha_threshold),
                 ("Depth Offset Factor", self.depth_offset_factor),
                 ("Depth Offset Units", self.depth_offset_units),
@@ -112,7 +112,7 @@ class Fog(Object3D):
             "Fog",
             [
                 ("Color", self.color),
-                ("Mode", self.mode),
+                ("Mode", const2str(self.mode)),
                 ("Density", self.density),
                 ("Near", self.near),
                 ("Far", self.far),
@@ -187,9 +187,9 @@ class PolygonMode(Object3D):
         return obj2str(
             "Material",
             [
-                ("Culling", self.culling),
-                ("Shading", self.shading),
-                ("Winding", self.winding),
+                ("Culling", const2str(self.culling)),
+                ("Shading", const2str(self.shading)),
+                ("Winding", const2str(self.winding)),
                 ("Two Sided Lighting Enabled", self.two_sided_lighting_enabled),
                 ("Local Camera Lighting Enabled", self.local_camera_lighting_enabled),
                 ("Perspective Correction Enabled", self.perspective_correction_enabled),
@@ -230,11 +230,11 @@ class Texture2D(Transformable):
             [
                 ("Image", self.image),
                 ("Blend Color", self.blend_color),
-                ("Blending", self.blending),
-                ("Wrapping S", self.wrapping_s),
-                ("Wrapping T", self.wrapping_t),
-                ("Level Filter", self.level_filter),
-                ("Image Filter", self.image_filter),
+                ("Blending", const2str(self.blending)),
+                ("Wrapping S", const2str(self.wrapping_s)),
+                ("Wrapping T", const2str(self.wrapping_t)),
+                ("Level Filter", const2str(self.level_filter)),
+                ("Image Filter", const2str(self.image_filter)),
             ],
         )
 

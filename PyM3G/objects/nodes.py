@@ -2,7 +2,7 @@
 Contains classes for scenegraph node objects
 """
 from struct import unpack
-from ..util import obj2str
+from ..util import obj2str, const2str
 from .base import Node
 
 
@@ -25,7 +25,7 @@ class Camera(Node):
         return obj2str(
             "Camera",
             [
-                ("Projection Type", self.projection_type),
+                ("Projection Type", const2str(self.projection_type)),
                 ("Projection Matrix", self.projection_matrix),
                 ("Fov Y", self.fovy),
                 ("Aspect Ratio", self.aspect_ratio),
@@ -93,7 +93,7 @@ class Light(Node):
                 ("Attenuation Linear", self.attenuation_linear),
                 ("Attenuation Quadratic", self.attenuation_quadratic),
                 ("Color", self.color),
-                ("Mode", self.mode),
+                ("Mode", const2str(self.mode)),
                 ("Intensity", self.intensity),
                 ("Spot Angle", self.spot_angle),
                 ("Spot Exponent", self.spot_exponent)
