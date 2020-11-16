@@ -13,12 +13,12 @@ class AnimationController(Object3D):
 
     def __init__(self):
         super().__init__()
-        self.speed = None
-        self.weight = None
-        self.active_interval_start = None
-        self.active_interval_end = None
-        self.reference_sequence_time = None
-        self.reference_world_time = None
+        self.speed = 1.0
+        self.weight = 1.0
+        self.active_interval_start = 0
+        self.active_interval_end = 0
+        self.reference_sequence_time = 0
+        self.reference_world_time = 0
 
     def __str__(self):
         return obj2str(
