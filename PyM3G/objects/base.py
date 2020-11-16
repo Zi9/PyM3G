@@ -11,7 +11,7 @@ class Object3D:
     """
 
     def __init__(self):
-        self.user_id = None
+        self.user_id = 0
         self.animation_tracks = []
         self.user_parameters = {}
 
@@ -49,9 +49,9 @@ class Transformable(Object3D):
     def __init__(self):
         super().__init__()
         self.has_component_transform = None
-        self.translation = None
-        self.scale = None
-        self.orientation_angle = None
+        self.translation = (0, 0, 0)
+        self.scale = (1, 1, 1)
+        self.orientation_angle = 0
         self.orientation_axis = None
         self.has_general_transform = None
         self.transform = None
@@ -76,10 +76,10 @@ class Node(Transformable):
 
     def __init__(self):
         super().__init__()
-        self.enable_rendering = None
-        self.enable_picking = None
-        self.alpha_factor = None
-        self.scope = None
+        self.enable_rendering = True
+        self.enable_picking = True
+        self.alpha_factor = 1.0
+        self.scope = -1
         self.has_alignment = None
         self.z_target = None
         self.y_target = None
@@ -99,3 +99,4 @@ class Node(Transformable):
             (self.z_target, self.y_target, self.z_reference, self.y_reference) = unpack(
                 "<BBII", reader.read(10)
             )
+        self.alpha_factor = self.alpha_factor / 255.0
