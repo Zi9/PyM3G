@@ -10,19 +10,30 @@ from rich.logging import RichHandler
 
 from .util import M3GStatus
 
-from .objects.animation import AnimationController, AnimationTrack, KeyframeSequence
-from .objects.appearance import (
-    Appearance,
-    CompositingMode,
-    Fog,
-    Material,
-    PolygonMode,
-    Texture2D,
-)
-from .objects.misc import Background, ExternalReference, Header, Image2D
-from .objects.nodes import Camera, Group, Light, Mesh, Sprite
-from .objects.nodes_extra import MorphingMesh, SkinnedMesh, World
-from .objects.vertex import TriangleStripArray, VertexArray, VertexBuffer
+from .objects.animation_controller import AnimationController
+from .objects.animation_track import AnimationTrack
+from .objects.appearance import Appearance
+from .objects.background import Background
+from .objects.camera import Camera
+from .objects.compositing_mode import CompositingMode
+from .objects.external_reference import ExternalReference
+from .objects.fog import Fog
+from .objects.group import Group
+from .objects.header import Header
+from .objects.image2d import Image2D
+from .objects.keyframe_sequence import KeyframeSequence
+from .objects.light import Light
+from .objects.material import Material
+from .objects.mesh import Mesh
+from .objects.morphing_mesh import MorphingMesh
+from .objects.polygon_mode import PolygonMode
+from .objects.skinned_mesh import SkinnedMesh
+from .objects.sprite import Sprite
+from .objects.texture2d import Texture2D
+from .objects.triangle_strip_array import TriangleStripArray
+from .objects.vertex_array import VertexArray
+from .objects.vertex_buffer import VertexBuffer
+from .objects.world import World
 
 _M3G_SIG = b"\xAB\x4A\x53\x52\x31\x38\x34\xBB\x0D\x0A\x1A\x0A"
 
