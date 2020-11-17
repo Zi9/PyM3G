@@ -13,12 +13,12 @@ class Texture2D(Transformable):
     def __init__(self):
         super().__init__()
         self.image = None
-        self.blend_color = None
-        self.blending = None
-        self.wrapping_s = None
-        self.wrapping_t = None
-        self.level_filter = None
-        self.image_filter = None
+        self.blend_color = (0.0, 0.0, 0.0, 0.0)
+        self.blending = 227
+        self.wrapping_s = 241
+        self.wrapping_t = 241
+        self.level_filter = 208
+        self.image_filter = 210
 
     def __str__(self):
         return obj2str(

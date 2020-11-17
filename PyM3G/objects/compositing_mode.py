@@ -11,14 +11,14 @@ class CompositingMode(Object3D):
 
     def __init__(self):
         super().__init__()
-        self.depth_test_enabled = None
-        self.depth_write_enabled = None
-        self.color_write_enabled = None
-        self.alpha_write_enabled = None
-        self.blending = None
-        self.alpha_threshold = None
-        self.depth_offset_factor = None
-        self.depth_offset_units = None
+        self.depth_test_enabled = True
+        self.depth_write_enabled = True
+        self.color_write_enabled = True
+        self.alpha_write_enabled = True
+        self.blending = 68
+        self.alpha_threshold = 0.0
+        self.depth_offset_factor = 0.0
+        self.depth_offset_units = 0.0
 
     def __str__(self):
         return obj2str(

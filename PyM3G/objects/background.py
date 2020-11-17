@@ -11,16 +11,16 @@ class Background(Object3D):
 
     def __init__(self):
         super().__init__()
-        self.background_color = None
+        self.background_color = (0, 0, 0, 0)
         self.background_image = None
-        self.background_image_mode_x = None
-        self.background_image_mode_y = None
+        self.background_image_mode_x = 32
+        self.background_image_mode_y = 32
         self.crop_x = None
         self.crop_y = None
         self.crop_width = None
         self.crop_height = None
-        self.depth_clear_enabled = None
-        self.color_clear_enabled = None
+        self.depth_clear_enabled = True
+        self.color_clear_enabled = True
 
     def __str__(self):
         return obj2str(

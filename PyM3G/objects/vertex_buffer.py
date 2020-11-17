@@ -12,7 +12,7 @@ class VertexBuffer(Object3D):
 
     def __init__(self):
         super().__init__()
-        self.default_color = None
+        self.default_color = (1.0, 1.0, 1.0, 1.0)
         self.positions = None
         self.position_bias = None
         self.position_scale = None
