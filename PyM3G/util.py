@@ -1,3 +1,4 @@
+"""Utility functions"""
 from enum import Enum, auto
 
 

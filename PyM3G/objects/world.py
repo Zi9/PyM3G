@@ -1,7 +1,7 @@
 """World Class"""
 from struct import unpack
-from ..util import obj2str
-from .group import Group
+from PyM3G.util import obj2str
+from PyM3G.objects.group import Group
 
 
 class World(Group):

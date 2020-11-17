@@ -8,32 +8,32 @@ import zlib
 import logging
 from rich.logging import RichHandler
 
-from .util import M3GStatus
+from PyM3G.util import M3GStatus
 
-from .objects.animation_controller import AnimationController
-from .objects.animation_track import AnimationTrack
-from .objects.appearance import Appearance
-from .objects.background import Background
-from .objects.camera import Camera
-from .objects.compositing_mode import CompositingMode
-from .objects.external_reference import ExternalReference
-from .objects.fog import Fog
-from .objects.group import Group
-from .objects.header import Header
-from .objects.image2d import Image2D
-from .objects.keyframe_sequence import KeyframeSequence
-from .objects.light import Light
-from .objects.material import Material
-from .objects.mesh import Mesh
-from .objects.morphing_mesh import MorphingMesh
-from .objects.polygon_mode import PolygonMode
-from .objects.skinned_mesh import SkinnedMesh
-from .objects.sprite import Sprite
-from .objects.texture2d import Texture2D
-from .objects.triangle_strip_array import TriangleStripArray
-from .objects.vertex_array import VertexArray
-from .objects.vertex_buffer import VertexBuffer
-from .objects.world import World
+from PyM3G.objects.animation_controller import AnimationController
+from PyM3G.objects.animation_track import AnimationTrack
+from PyM3G.objects.appearance import Appearance
+from PyM3G.objects.background import Background
+from PyM3G.objects.camera import Camera
+from PyM3G.objects.compositing_mode import CompositingMode
+from PyM3G.objects.external_reference import ExternalReference
+from PyM3G.objects.fog import Fog
+from PyM3G.objects.group import Group
+from PyM3G.objects.header import Header
+from PyM3G.objects.image2d import Image2D
+from PyM3G.objects.keyframe_sequence import KeyframeSequence
+from PyM3G.objects.light import Light
+from PyM3G.objects.material import Material
+from PyM3G.objects.mesh import Mesh
+from PyM3G.objects.morphing_mesh import MorphingMesh
+from PyM3G.objects.polygon_mode import PolygonMode
+from PyM3G.objects.skinned_mesh import SkinnedMesh
+from PyM3G.objects.sprite import Sprite
+from PyM3G.objects.texture2d import Texture2D
+from PyM3G.objects.triangle_strip_array import TriangleStripArray
+from PyM3G.objects.vertex_array import VertexArray
+from PyM3G.objects.vertex_buffer import VertexBuffer
+from PyM3G.objects.world import World
 
 _M3G_SIG = b"\xAB\x4A\x53\x52\x31\x38\x34\xBB\x0D\x0A\x1A\x0A"
 

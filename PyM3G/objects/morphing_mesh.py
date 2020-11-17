@@ -1,7 +1,7 @@
 """Morphing Mesh Class"""
 from struct import unpack
-from ..util import obj2str
-from .mesh import Mesh
+from PyM3G.util import obj2str
+from PyM3G.objects.mesh import Mesh
 
 
 class MorphingMesh(Mesh):
