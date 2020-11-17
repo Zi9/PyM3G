@@ -11,12 +11,12 @@ class Material(Object3D):
 
     def __init__(self):
         super().__init__()
-        self.ambient_color = None
-        self.diffuse_color = None
-        self.emissive_color = None
-        self.specular_color = None
-        self.shininess = None
-        self.vertex_color_tracking_enabled = None
+        self.ambient_color = (0.2, 0.2, 0.2, 0.0)
+        self.diffuse_color = (0.8, 0.8, 0.8, 1.0)
+        self.emissive_color = (0.0, 0.0, 0.0, 0.0)
+        self.specular_color = (0.0, 0.0, 0.0, 0.0)
+        self.shininess = 0.0
+        self.vertex_color_tracking_enabled = False
 
     def __str__(self):
         return obj2str(

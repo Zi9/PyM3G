@@ -11,11 +11,11 @@ class Fog(Object3D):
 
     def __init__(self):
         super().__init__()
-        self.color = None
-        self.mode = None
-        self.density = None
-        self.near = None
-        self.far = None
+        self.color = (0, 0, 0, 0)
+        self.mode = 81
+        self.density = 1.0
+        self.near = 0.0
+        self.far = 1.0
 
     def __str__(self):
         return obj2str(
@@ -36,4 +36,4 @@ class Fog(Object3D):
         if self.mode == 80:
             self.density = unpack("<f", reader.read(4))[0]
         elif self.mode == 81:
-            (self.near.self.far) = unpack("<2f", reader.read(8))
+            (self.near, self.far) = unpack("<2f", reader.read(8))

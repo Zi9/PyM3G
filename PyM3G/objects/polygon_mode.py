@@ -11,12 +11,12 @@ class PolygonMode(Object3D):
 
     def __init__(self):
         super().__init__()
-        self.culling = None
-        self.shading = None
-        self.winding = None
-        self.two_sided_lighting_enabled = None
-        self.local_camera_lighting_enabled = None
-        self.perspective_correction_enabled = None
+        self.culling = 160
+        self.shading = 165
+        self.winding = 168
+        self.two_sided_lighting_enabled = False
+        self.local_camera_lighting_enabled = False
+        self.perspective_correction_enabled = False
 
     def __str__(self):
         return obj2str(

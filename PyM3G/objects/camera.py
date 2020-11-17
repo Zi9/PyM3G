@@ -12,7 +12,7 @@ class Camera(Node):
 
     def __init__(self):
         super().__init__()
-        self.projection_type = None
+        self.projection_type = 48
         self.projection_matrix = None
         self.fovy = None
         self.aspect_ratio = None

@@ -12,7 +12,7 @@ class Appearance(Object3D):
 
     def __init__(self):
         super().__init__()
-        self.layer = None
+        self.layer = 0
         self.compositing_mode = None
         self.fog = None
         self.polygon_mode = None

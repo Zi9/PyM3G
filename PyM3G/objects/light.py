@@ -11,14 +11,14 @@ class Light(Node):
 
     def __init__(self):
         super().__init__()
-        self.attenuation_constant = None
-        self.attenuation_linear = None
-        self.attenuation_quadratic = None
-        self.color = None
-        self.mode = None
-        self.intensity = None
-        self.spot_angle = None
-        self.spot_exponent = None
+        self.attenuation_constant = 1.0
+        self.attenuation_linear = 1.0
+        self.attenuation_quadratic = 1.0
+        self.color = (0, 0, 0, 0)
+        self.mode = 129
+        self.intensity = 1.0
+        self.spot_angle = 45
+        self.spot_exponent = 0.0
 
     def __str__(self):
         return obj2str(
