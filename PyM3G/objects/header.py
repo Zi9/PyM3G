@@ -1,6 +1,6 @@
 """Header Class"""
 from struct import unpack
-from ..util import obj2str
+from PyM3G.util import obj2str
 
 
 class Header:
@@ -28,6 +28,7 @@ class Header:
         )
 
     def read(self, reader):
+        """Read header from file stream"""
         self.version = unpack("<BB", reader.read(2))
         (
             self.has_external_references,

@@ -1,6 +1,6 @@
 """Node Class"""
 from struct import unpack
-from .transformable import Transformable
+from PyM3G.objects.transformable import Transformable
 
 
 class Node(Transformable):

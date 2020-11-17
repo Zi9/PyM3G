@@ -1,5 +1,5 @@
 """External Reference Class"""
-from ..util import obj2str
+from PyM3G.util import obj2str
 
 
 class ExternalReference:
@@ -14,4 +14,5 @@ class ExternalReference:
         return obj2str("External Reference", [("URI", self.uri)])
 
     def read(self, reader):
+        """Read external reference string from file stream"""
         self.uri = reader.read().rstrip(b"\x00").decode("utf-8")
