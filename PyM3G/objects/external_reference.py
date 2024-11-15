@@ -1,4 +1,5 @@
 """External Reference Class"""
+
 from PyM3G.util import obj2str
 
 

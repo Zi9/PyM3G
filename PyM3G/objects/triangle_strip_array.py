@@ -1,4 +1,5 @@
 """Triangle Strip Array Class"""
+
 from struct import unpack
 from PyM3G.util import obj2str
 from PyM3G.objects.object3d import Object3D

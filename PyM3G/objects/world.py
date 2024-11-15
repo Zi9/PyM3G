@@ -1,4 +1,5 @@
 """World Class"""
+
 from struct import unpack
 from PyM3G.util import obj2str
 from PyM3G.objects.group import Group

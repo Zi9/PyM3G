@@ -1,4 +1,5 @@
 """Transformable Class"""
+
 from struct import unpack
 from PyM3G.objects.object3d import Object3D
 

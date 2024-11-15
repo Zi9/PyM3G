@@ -1,4 +1,5 @@
 """Node Class"""
+
 from struct import unpack
 from PyM3G.objects.transformable import Transformable
 

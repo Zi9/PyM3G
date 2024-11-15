@@ -1,6 +1,7 @@
 """
 Module for reading JSR 184 m3g files
 """
+
 from io import BytesIO
 from struct import unpack, pack
 import zlib
@@ -74,7 +75,10 @@ class M3GReader:
 
     def __init__(self, path, log_level="WARNING"):
         logging.basicConfig(
-            level="NOTSET", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
+            level="NOTSET",
+            format="%(message)s",
+            datefmt="[%X]",
+            handlers=[RichHandler()],
         )
         self.log = logging.getLogger("m3g")
         self.log.setLevel(log_level)
@@ -150,7 +154,9 @@ class M3GReader:
             chksum1 = zlib.adler32(pack("<BII", compression, total_len, uncomp) + data)
             chksum2 = unpack("<I", self.file.read(4))[0]
             if chksum1 != chksum2:
-                self.log.error(f"Checksums do not match, file '{self.file.name}' may be corrupt")
+                self.log.error(
+                    f"Checksums do not match, file '{self.file.name}' may be corrupt"
+                )
                 return
             self.log.info("Checksum validated successfully")
 
