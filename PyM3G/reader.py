@@ -37,14 +37,6 @@ from PyM3G.objects.world import World
 
 _M3G_SIG = b"\xAB\x4A\x53\x52\x31\x38\x34\xBB\x0D\x0A\x1A\x0A"
 
-LOG_LEVEL = "WARNING"
-
-logging.basicConfig(
-    level="NOTSET", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
-)
-log = logging.getLogger("m3g")
-log.setLevel(logging.getLevelName(LOG_LEVEL))
-
 
 class M3GReader:
     """
@@ -78,15 +70,23 @@ class M3GReader:
         255: ExternalReference,
     }
 
-    def __init__(self, path):
+    log = None
+
+    def __init__(self, path, log_level="WARNING"):
+        logging.basicConfig(
+            level="NOTSET", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
+        )
+        self.log = logging.getLogger("m3g")
+        self.log.setLevel(log_level)
+
         self.status = M3GStatus.FAILED
         self.objects = []
         self.file = open(path, "rb")
         if not self.file:
-            log.error("Could not open file %s", path)
+            self.log.error("Could not open file %s", path)
             return
         if not self.verify_signature():
-            log.error("Invalid M3G file %s", path)
+            self.log.error("Invalid M3G file %s", path)
             self.file.close()
             return
         self.read_sections()
@@ -106,10 +106,10 @@ class M3GReader:
             obj = self._type2class.get(objtype)()
         else:
             obj = None
-            log.error("Invalid object type(%d) found", objtype)
+            self.log.error("Invalid object type(%d) found", objtype)
             rdr.close()
             return None
-        log.info(
+        self.log.info(
             "Found [bold cyan]%s[/] object",
             obj.__class__.__name__,
             extra={"markup": True},
@@ -118,7 +118,7 @@ class M3GReader:
 
         bytes_unread = len(rdr.read())
         if obj is None and bytes_unread > 0:
-            log.warning("%d bytes left unread", bytes_unread)
+            self.log.warning("%d bytes left unread", bytes_unread)
         rdr.close()
         return obj
 
@@ -139,20 +139,20 @@ class M3GReader:
             section_header = self.file.read(9)
             if section_header == b"":
                 break
-            log.info("Section @ %d", self.file.tell())
+            self.log.info("Section @ %d", self.file.tell())
             compression, total_len, uncomp = unpack("<BII", section_header)
-            log.info("Compression: %s", compression)
-            log.info("Total length: %d", total_len)
-            log.info("Uncompressed length: %d", uncomp)
+            self.log.info("Compression: %s", compression)
+            self.log.info("Total length: %d", total_len)
+            self.log.info("Uncompressed length: %d", uncomp)
             section_length = total_len - 13
             data = self.file.read(section_length)
             self.read_objects(data)
             chksum1 = zlib.adler32(pack("<BII", compression, total_len, uncomp) + data)
             chksum2 = unpack("<I", self.file.read(4))[0]
             if chksum1 != chksum2:
-                log.error("Checksums do not match, file may be corrupt")
+                self.log.error(f"Checksums do not match, file '{self.file.name}' may be corrupt")
                 return
-            log.info("Checksum validated successfully")
+            self.log.info("Checksum validated successfully")
 
     def get_object_by_id(self, obj_id):
         """Returns an object based on id"""
