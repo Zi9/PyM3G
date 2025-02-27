@@ -150,7 +150,13 @@ class M3GReader:
             self.log.info("Uncompressed length: %d", uncomp)
             section_length = total_len - 13
             data = self.file.read(section_length)
-            self.read_objects(data)
+            if compression == 1:
+                self.read_objects(zlib.decompress(data))
+            elif compression == 0:
+                self.read_objects(data)
+            else:
+                self.log.error("Unknown Compression Scheme.")
+                return            
             chksum1 = zlib.adler32(pack("<BII", compression, total_len, uncomp) + data)
             chksum2 = unpack("<I", self.file.read(4))[0]
             if chksum1 != chksum2:
