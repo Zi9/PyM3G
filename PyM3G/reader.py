@@ -97,10 +97,40 @@ class M3GReader:
         self.file.close()
         self.status = M3GStatus.SUCCESS
 
+    def fishlabs_deobfuscate(self, data):
+        """
+        From j2me-preservation/MascotCapsule
+        https://github.com/j2me-preservation/MascotCapsule/blob/master/tools/fishlabs_obfuscation.py
+        """
+        length = len(data)
+        data = bytearray(data)
+        if length < 100:
+            var5 = 10 + length % 10
+        elif length < 200:
+            var5 = 50 + length % 20
+        elif length < 300:
+            var5 = 80 + length % 20
+        else:
+            var5 = 100 + length % 50
+        for i in range(var5):
+            var7 = data[i]
+            data[i] = data[length - i - 1]
+            data[length - i - 1] = var7
+        return bytes(data)
+
     def verify_signature(self):
         """Verify header bytes to make sure this is a valid m3g file"""
         if self.file.read(12) == _M3G_SIG:
             return True
+        self.file.seek(-12,2)
+        if self.file.read(12) == _M3G_SIG[::-1]:
+            from io import BytesIO
+            self.file.seek(0)
+            data = self.file.read()
+            self.file = BytesIO(self.fishlabs_deobfuscate(data))
+            if self.file.read(12) == _M3G_SIG:
+                self.log.info("Fishlabs obfuscation detected")
+                return True
         return False
 
     def parse_object(self, objtype, data):
