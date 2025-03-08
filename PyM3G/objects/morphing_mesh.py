@@ -28,8 +28,8 @@ class MorphingMesh(Mesh):
 
     def read(self, reader):
         super().read(reader)
-        self.morph_target_count = unpack(reader.read(4), "<I")
+        self.morph_target_count = unpack("<I", reader.read(4))
         for _ in range(self.morph_target_count):
-            morph_target, initial_weight = unpack(8, "<If")
+            morph_target, initial_weight = unpack("<If", 8)
             self.morph_target.append(morph_target)
             self.initial_weight.append(initial_weight)
