@@ -34,10 +34,10 @@ class SkinnedMesh(Mesh):
 
     def read(self, reader):
         super().read(reader)
-        self.skeleton, self.transform_reference_count = unpack(reader.read(8), "<II")
+        self.skeleton, self.transform_reference_count = unpack("<II", reader.read(8))
         for _ in range(self.transform_reference_count):
             (transform_node, first_vertex, vertex_count, weight) = unpack(
-                reader.read(16), "<3Ii"
+                "<3Ii", reader.read(16)
             )
             self.transform_node.append(transform_node)
             self.first_vertex.append(first_vertex)
