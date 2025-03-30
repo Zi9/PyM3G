@@ -55,42 +55,43 @@ class KeyframeSequence(Object3D):
             self.valid_range_last,
             self.component_count,
             self.keyframe_count,
-        ) = unpack(reader.read(23), "<3B5I")
+        ) = unpack("<3B5I", reader.read(23))
         if self.encoding == 0:
             for _ in range(self.keyframe_count):
-                self.time.append(unpack(reader.read(4), "<I")[0])
+                self.time.append(unpack("<I", reader.read(4))[0])
                 self.vector_value.append(
                     unpack(
-                        reader.read(4 * self.component_count),
                         f"<{self.component_count}f",
+                        reader.read(4 * self.component_count),
                     )
                 )
         elif self.encoding == 1:
             self.vector_bias = unpack(
-                reader.read(4 * self.component_count), f"<{self.component_count}f"
+                f"<{self.component_count}f", reader.read(4 * self.component_count)
             )
             self.vector_scale = unpack(
-                reader.read(4 * self.component_count), f"<{self.component_count}f"
+                f"<{self.component_count}f", reader.read(4 * self.component_count)
             )
             for _ in range(self.keyframe_count):
-                self.time.append(unpack(reader.read(4), "<I")[0])
+                self.time.append(unpack("<I", reader.read(4))[0])
                 self.vector_value.append(
                     unpack(
-                        reader.read(self.component_count), f"<{self.component_count}B"
+                        f"<{self.component_count}B",
+                        reader.read(self.component_count),
                     )
                 )
         elif self.encoding == 2:
             self.vector_bias = unpack(
-                reader.read(4 * self.component_count), f"<{self.component_count}f"
+                f"<{self.component_count}f", reader.read(4 * self.component_count)
             )
             self.vector_scale = unpack(
-                reader.read(4 * self.component_count), f"<{self.component_count}f"
+                f"<{self.component_count}f", reader.read(4 * self.component_count)
             )
             for _ in range(self.keyframe_count):
-                self.time.append(unpack(reader.read(4), "<I")[0])
+                self.time.append(unpack("<I",reader.read(4))[0])
                 self.vector_value.append(
                     unpack(
-                        reader.read(2 * self.component_count),
                         f"<{self.component_count}H",
+                        reader.read(2 * self.component_count),
                     )
                 )
