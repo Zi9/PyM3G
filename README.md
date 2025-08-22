@@ -3,6 +3,9 @@
 A small library to parse JSR 184 format .m3g files. These files are mostly used in J2ME mobile games.
 
 
+## This repo is archived. For the latest code check out [this fork](https://github.com/BaalNetbek/PyM3G/)
+
+
 ### Example usage
 ---
 Included is a small demo utility to print out all the properties of a .m3g file when the module is called directly:
